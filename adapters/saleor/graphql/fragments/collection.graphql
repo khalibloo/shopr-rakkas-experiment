@@ -1,0 +1,9 @@
+fragment BasicCollectionDetails on Collection {
+  id
+  name
+  slug
+  translation(languageCode: $lang) {
+    id
+    name
+  }
+}

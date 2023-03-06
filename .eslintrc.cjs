@@ -7,6 +7,12 @@ module.exports = {
   },
   root: true,
   extends: ["@rakkasjs"],
+  rules: {
+    "react-hooks/exhaustive-deps": 0,
+    "@typescript-eslint/no-empty-interface": 0,
+    "import/no-named-as-default": 0,
+    "import/no-named-as-default-member": 0,
+  },
   parserOptions: { tsconfigRootDir: __dirname },
   settings: {
     "import/resolver": {

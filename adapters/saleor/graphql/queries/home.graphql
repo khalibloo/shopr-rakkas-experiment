@@ -1,0 +1,18 @@
+query homePageQuery($lang: LanguageCodeEnum!) {
+  shop {
+    name
+    description
+    languages {
+      code
+      language
+    }
+    companyAddress {
+      ...AddressDetails
+    }
+    translation(languageCode: $lang) {
+      id
+      headerText
+      description
+    }
+  }
+}

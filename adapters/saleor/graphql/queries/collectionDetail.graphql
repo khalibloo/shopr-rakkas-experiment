@@ -1,0 +1,15 @@
+query collectionDetailQuery($collection: ID!, $lang: LanguageCodeEnum!) {
+  collection(id: $collection) {
+    ...BasicCollectionDetails
+    seoTitle
+    seoDescription
+    backgroundImage {
+      url
+      alt
+    }
+    translation(languageCode: $lang) {
+      seoTitle
+      seoDescription
+    }
+  }
+}

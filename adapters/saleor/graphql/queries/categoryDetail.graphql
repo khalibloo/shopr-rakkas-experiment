@@ -1,0 +1,15 @@
+query categoryDetailQuery($category: String!, $lang: LanguageCodeEnum!) {
+  category(slug: $category) {
+    ...BasicCategoryDetails
+    seoTitle
+    seoDescription
+    backgroundImage {
+      url
+      alt
+    }
+    translation(languageCode: $lang) {
+      seoTitle
+      seoDescription
+    }
+  }
+}

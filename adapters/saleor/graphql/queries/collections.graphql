@@ -1,0 +1,9 @@
+query collectionsQuery($lang: LanguageCodeEnum!) {
+  collections(channel: "default-channel", first: 100) {
+    edges {
+      node {
+        ...BasicCollectionDetails
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+query homeBannerSectionQuery($menuName: String!, $lang: LanguageCodeEnum!) {
+  menu(name: $menuName) {
+    id
+    name
+    items {
+      id
+      name
+      category {
+        ...BasicCategoryDetails
+        backgroundImage {
+          url
+          alt
+        }
+      }
+      collection {
+        ...BasicCollectionDetails
+        backgroundImage {
+          url
+          alt
+        }
+      }
+      url
+    }
+  }
+}

@@ -1,0 +1,96 @@
+query productDetailQuery($productID: ID, $productSlug: String, $lang: LanguageCodeEnum!) {
+  product(id: $productID, slug: $productSlug) {
+    ...BasicProduct
+    description
+    seoTitle
+    seoDescription
+    isAvailable
+    translation(languageCode: $lang) {
+      description
+      seoTitle
+      seoDescription
+    }
+    attributes {
+      attribute {
+        id
+        name
+        translation(languageCode: $lang) {
+          id
+          name
+        }
+      }
+      values {
+        id
+        name
+        translation(languageCode: $lang) {
+          id
+          name
+        }
+      }
+    }
+    variants {
+      id
+      sku
+      name
+      media {
+        id
+        url
+        alt
+        type
+      }
+      pricing {
+        price {
+          gross {
+            amount
+            currency
+          }
+        }
+      }
+      attributes {
+        values {
+          id
+          name
+          translation(languageCode: $lang) {
+            id
+            name
+          }
+        }
+        attribute {
+          id
+          name
+          translation(languageCode: $lang) {
+            id
+            name
+          }
+          choices(first: 100) {
+            edges {
+              node {
+                id
+                name
+                translation(languageCode: $lang) {
+                  id
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+      quantityAvailable
+      translation(languageCode: $lang) {
+        id
+        name
+      }
+    }
+    category {
+      ...BasicCategoryDetails
+      products(first: 10) {
+        edges {
+          node {
+            ...BasicProduct
+          }
+        }
+      }
+    }
+  }
+}

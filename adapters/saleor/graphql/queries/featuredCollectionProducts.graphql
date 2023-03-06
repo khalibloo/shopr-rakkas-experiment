@@ -1,0 +1,12 @@
+query featuredCollectionProducts($slug: String!, $first: Int!, $lang: LanguageCodeEnum!) {
+  collection(slug: $slug) {
+    ...BasicCollectionDetails
+    products(first: $first) {
+      edges {
+        node {
+          ...BasicProduct
+        }
+      }
+    }
+  }
+}

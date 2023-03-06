@@ -1,0 +1,142 @@
+query ordersQuery($lang: LanguageCodeEnum!) {
+  me {
+    id
+    orders(first: 50) {
+      totalCount
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      edges {
+        node {
+          id
+          created
+          status
+          number
+          isShippingRequired
+          isPaid
+          total {
+            gross {
+              amount
+              currency
+            }
+          }
+          subtotal {
+            gross {
+              amount
+              currency
+            }
+          }
+          shippingPrice {
+            gross {
+              amount
+              currency
+            }
+          }
+          shippingAddress {
+            ...AddressDetails
+          }
+          billingAddress {
+            ...AddressDetails
+          }
+          deliveryMethod {
+            ... on ShippingMethod {
+              id
+              name
+              price {
+                amount
+                currency
+              }
+            }
+          }
+          fulfillments {
+            id
+            lines {
+              id
+              quantity
+              orderLine {
+                id
+              }
+            }
+          }
+          invoices {
+            id
+            status
+            url
+            createdAt
+          }
+          lines {
+            id
+            isShippingRequired
+            quantity
+            quantityFulfilled
+            unitPrice {
+              gross {
+                amount
+                currency
+              }
+            }
+            variant {
+              id
+              name
+              sku
+              media {
+                id
+                url
+                alt
+                type
+              }
+              attributes {
+                attribute {
+                  id
+                  name
+                  translation(languageCode: $lang) {
+                    id
+                    name
+                  }
+                }
+                values {
+                  id
+                  name
+                  translation(languageCode: $lang) {
+                    id
+                    name
+                  }
+                }
+              }
+              pricing {
+                price {
+                  gross {
+                    currency
+                    amount
+                  }
+                }
+              }
+              translation(languageCode: $lang) {
+                id
+                name
+              }
+              product {
+                id
+                slug
+                name
+                description
+                thumbnail {
+                  url
+                  alt
+                }
+                translation(languageCode: $lang) {
+                  id
+                  name
+                  description
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

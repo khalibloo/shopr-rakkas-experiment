@@ -11,6 +11,10 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "types": ["vite/client"],
-    "paths": { "@/*": ["./src/*"] }
+    "paths": {
+      "@/*": ["./src/*"],
+      "@adapters/*": ["./adapters/*"]
+    },
+    "noImplicitAny": false
   }
 }

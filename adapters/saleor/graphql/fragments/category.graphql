@@ -1,0 +1,20 @@
+fragment BasicCategoryDetails on Category {
+  id
+  name
+  description
+  slug
+  level
+  ancestors(first: 100) {
+    edges {
+      node {
+        id
+        slug
+        name
+      }
+    }
+  }
+  translation(languageCode: $lang) {
+    id
+    name
+  }
+}

@@ -1,0 +1,148 @@
+fragment CheckoutPricingDetails on Checkout {
+  deliveryMethod {
+    ... on ShippingMethod {
+      id
+      name
+      minimumOrderPrice {
+        currency
+        amount
+      }
+    }
+  }
+  shippingPrice {
+    gross {
+      currency
+      amount
+    }
+  }
+  subtotalPrice {
+    gross {
+      currency
+      amount
+    }
+  }
+  totalPrice {
+    gross {
+      currency
+      amount
+    }
+  }
+  discount {
+    currency
+    amount
+  }
+  voucherCode
+}
+
+fragment CheckoutDetails on Checkout {
+  id
+  token
+  email
+  ...CheckoutPricingDetails
+  shippingMethods {
+    id
+    name
+    price {
+      currency
+      amount
+    }
+  }
+  deliveryMethod {
+    ... on ShippingMethod {
+      id
+      name
+    }
+  }
+  shippingAddress {
+    ...AddressDetails
+  }
+  billingAddress {
+    ...AddressDetails
+  }
+  availablePaymentGateways {
+    id
+    name
+    config {
+      field
+      value
+    }
+  }
+}
+
+fragment CheckoutLinesDetails on Checkout {
+  lines {
+    id
+    variant {
+      id
+      name
+      sku
+      quantityAvailable
+      media {
+        id
+        url
+        alt
+        type
+      }
+      attributes {
+        attribute {
+          id
+          name
+          translation(languageCode: $lang) {
+            id
+            name
+          }
+        }
+        values {
+          id
+          name
+          translation(languageCode: $lang) {
+            id
+            name
+          }
+        }
+      }
+      pricing {
+        price {
+          gross {
+            currency
+            amount
+          }
+        }
+      }
+      translation(languageCode: $lang) {
+        id
+        name
+      }
+      product {
+        id
+        slug
+        name
+        category {
+          id
+          name
+          translation(languageCode: $lang) {
+            id
+            name
+          }
+        }
+        description
+        thumbnail {
+          url
+          alt
+        }
+        translation(languageCode: $lang) {
+          id
+          name
+          description
+        }
+      }
+    }
+    quantity
+    totalPrice {
+      gross {
+        amount
+        currency
+      }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+query profileQuery {
+  me {
+    ...UserDetails
+    addresses {
+      ...AddressDetails
+    }
+  }
+}

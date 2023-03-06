@@ -1,0 +1,51 @@
+query categoryTreeQuery($lang: LanguageCodeEnum!) {
+  categories(level: 0, first: 100) {
+    edges {
+      node {
+        ...BasicCategoryDetails
+        children(first: 100) {
+          edges {
+            node {
+              ...BasicCategoryDetails
+              children(first: 100) {
+                edges {
+                  node {
+                    ...BasicCategoryDetails
+                    children(first: 100) {
+                      edges {
+                        node {
+                          ...BasicCategoryDetails
+                          children(first: 100) {
+                            edges {
+                              node {
+                                ...BasicCategoryDetails
+                                children(first: 100) {
+                                  edges {
+                                    node {
+                                      ...BasicCategoryDetails
+                                      children(first: 100) {
+                                        edges {
+                                          node {
+                                            ...BasicCategoryDetails
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

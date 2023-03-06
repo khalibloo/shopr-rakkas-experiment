@@ -1,0 +1,15 @@
+overwrite: true
+schema: http://localhost:8000/graphql/
+documents: "adapters/saleor/**/*.graphql"
+generates:
+  adapters/saleor/generated/graphql.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typescript-graphql-request
+    config:
+      addInfiniteQuery: true
+      dedupeFragments: true
+  adapters/saleor/generated/graphql.schema.json:
+    plugins:
+      - "introspection"

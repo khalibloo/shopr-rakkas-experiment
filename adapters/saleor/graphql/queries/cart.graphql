@@ -1,0 +1,44 @@
+query cartBadgeQuery {
+  me {
+    id
+    checkout {
+      id
+      token
+      lines {
+        id
+        quantity
+      }
+    }
+  }
+}
+
+query cartBadgeWithTokenQuery($token: UUID!) {
+  checkout(token: $token) {
+    id
+    token
+    lines {
+      id
+      quantity
+    }
+  }
+}
+
+query cartQuery($lang: LanguageCodeEnum!) {
+  me {
+    id
+    addresses {
+      ...AddressDetails
+    }
+    checkout {
+      ...CheckoutDetails
+      ...CheckoutLinesDetails
+    }
+  }
+}
+
+query cartWithTokenQuery($token: UUID!, $lang: LanguageCodeEnum!) {
+  checkout(token: $token) {
+    ...CheckoutDetails
+    ...CheckoutLinesDetails
+  }
+}

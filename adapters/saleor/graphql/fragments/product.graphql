@@ -1,0 +1,63 @@
+fragment BasicProduct on Product {
+  id
+  name
+  slug
+  thumbnail {
+    url
+    alt
+  }
+  media {
+    id
+    url
+    alt
+    type
+  }
+  collections {
+    ...BasicCollectionDetails
+  }
+  category {
+    ...BasicCategoryDetails
+  }
+  pricing {
+    onSale
+    discount {
+      currency
+      gross {
+        currency
+        amount
+      }
+    }
+    priceRange {
+      start {
+        gross {
+          currency
+          amount
+        }
+      }
+      stop {
+        gross {
+          currency
+          amount
+        }
+      }
+    }
+    priceRangeUndiscounted {
+      start {
+        gross {
+          currency
+          amount
+        }
+      }
+      stop {
+        gross {
+          currency
+          amount
+        }
+      }
+    }
+  }
+  translation(languageCode: $lang) {
+    id
+    name
+  }
+}

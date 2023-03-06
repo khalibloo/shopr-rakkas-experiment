@@ -1,0 +1,19 @@
+query categorySubtreeQuery($lang: LanguageCodeEnum!, $categoryId: ID!) {
+  category(id: $categoryId) {
+    ...BasicCategoryDetails
+    children(first: 100) {
+      edges {
+        node {
+          ...BasicCategoryDetails
+          children(first: 100) {
+            edges {
+              node {
+                ...BasicCategoryDetails
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
