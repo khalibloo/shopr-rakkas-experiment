@@ -1,31 +1,32 @@
-import React, { useEffect } from "react";
-import { Row, Col, Carousel } from "antd";
-import { useLazyQuery } from "@apollo/client";
-import { useResponsive } from "ahooks";
-import { getLangCode, getScreenSize } from "@/utils/utils";
+import React from "react";
+import { Row, Col, Carousel, Grid } from "antd";
+import { getScreenSize } from "@/utils/utils";
 
-import SkeletonDiv from "@/components/SkeletonDiv";
 import { HomeBannerConfig } from ".altrc";
-import { homeBannerSectionQuery } from "@/queries/types/homeBannerSectionQuery";
-import { HOME_BANNER_SECTION_QUERY } from "@/queries/homeBannerSection";
 import HomeBannerItem from "./HomeBannerItem";
+import { useSSQ } from "rakkasjs";
+import { GraphQLClient } from "graphql-request";
+import { getSdk } from "@adapters/saleor/generated/graphql";
+import config from "@/config";
 
 const HomeBannerSection: React.FC<HomeBannerConfig> = ({ fullWidth, height, images, menuName, showTitleOverlay }) => {
-  const [fetchMenu, { loading: fetching, error, data }] = useLazyQuery<homeBannerSectionQuery>(
-    HOME_BANNER_SECTION_QUERY,
-    {
-      variables: { menuName, lang: getLangCode() },
+  const { data } = useSSQ(async (ctx) => {
+    if (menuName) {
+      const client = new GraphQLClient(config.apiEndpoint, { fetch: ctx.fetch });
+      const sdk = getSdk(client);
+      const res = await sdk.homeBannerSectionQuery({ menuName, lang: "EN" });
+      return res;
     }
-  );
-  const responsive: any = useResponsive();
+  });
+  const responsive = Grid.useBreakpoint();
+
+  if (!menuName) {
+    // improperly configured section
+    return null;
+  }
+
   const screenSize = getScreenSize(responsive);
   const h = typeof height === "object" ? height[screenSize] : height;
-
-  useEffect(() => {
-    if (menuName) {
-      fetchMenu();
-    }
-  }, []);
 
   let items = images?.map((image, i) => ({ ...image, id: `${i}` }));
   if (menuName) {
@@ -43,29 +44,24 @@ const HomeBannerSection: React.FC<HomeBannerConfig> = ({ fullWidth, height, imag
         };
       })
       .filter((item) => item.imageUrl != null);
-    if (!fetching && !items) {
-      // likely caused by invalid menu config
-      return null;
-    }
   }
+
   return (
     <Row justify="center">
       <Col span={24} md={fullWidth ? 24 : 20} className="overflow-hidden relative" style={{ height: h || 500 }}>
-        <SkeletonDiv active loading={fetching}>
-          {items?.length === 1 ? (
-            <HomeBannerItem {...items[0]} />
-          ) : (
-            <Carousel autoplay className="w-full">
-              {items?.map((item) => (
-                <div key={item.id}>
-                  <div style={{ height: h }}>
-                    <HomeBannerItem {...item} />
-                  </div>
+        {items?.length === 1 ? (
+          <HomeBannerItem {...items[0]} />
+        ) : (
+          <Carousel autoplay className="w-full">
+            {items?.map((item) => (
+              <div key={item.id}>
+                <div style={{ height: h }}>
+                  <HomeBannerItem {...item} />
                 </div>
-              ))}
-            </Carousel>
-          )}
-        </SkeletonDiv>
+              </div>
+            ))}
+          </Carousel>
+        )}
       </Col>
     </Row>
   );

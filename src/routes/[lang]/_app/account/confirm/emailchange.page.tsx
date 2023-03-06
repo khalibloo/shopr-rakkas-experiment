@@ -1,19 +1,16 @@
 import React, { useEffect } from "react";
-import { useIntl, useLocation, history, connect, ConnectRC, Link } from "umi";
 import { Button, message, notification, Result } from "antd";
-import { ConnectState } from "@/models/connect";
-import VSpacing from "@/components/VSpacing";
 import Loader from "@/components/Loader";
-import { APIException } from "@/apollo";
+import { Head, Link, navigate, useLocation } from "rakkasjs";
+import { useTranslation } from "react-i18next";
 
-interface Props {
-  authenticated: boolean;
-}
-const EmailChangePage: React.FC<Props> = ({ authenticated, dispatch }) => {
+const EmailChangePage: React.FC = () => {
   const { t } = useTranslation();
-  const location = useLocation();
-  const query = location.query || {};
-  const { token } = query;
+  const {
+    current: { searchParams },
+  } = useLocation();
+  const token = searchParams.get("token");
+  const dispatch = (x) => x;
   useEffect(() => {
     if (token) {
       dispatch?.({
@@ -25,9 +22,9 @@ const EmailChangePage: React.FC<Props> = ({ authenticated, dispatch }) => {
               message: t("who.emailchange.success"),
               description: t("who.emailchange.success.desc"),
             });
-            history.push("/profile");
+            navigate("/profile");
           },
-          onError: (err: APIException) => {
+          onError: (err) => {
             // check if token expired or is invalid
             message.error(t("misc.error.generic"));
           },
@@ -38,31 +35,23 @@ const EmailChangePage: React.FC<Props> = ({ authenticated, dispatch }) => {
 
   if (!token) {
     return (
-      <>
-        <VSpacing height={24} />
+      <div className="pt-6 pb-12">
+        <Head title={t("account.emailchange.title")} />
         <Result
           status="error"
           extra={[
-            <Link to="/">
-              <Button type="primary" key="0">
-                {t("misc.backToHome")}
-              </Button>
+            <Link href="/" key="0">
+              <Button type="primary">{t("misc.backToHome")}</Button>
             </Link>,
           ]}
           title={t("account.confirm.invalidUrl")}
           subTitle={t("account.confirm.invalidUrl.desc")}
         />
-        <VSpacing height={48} />
-      </>
+      </div>
     );
   }
 
   return <Loader />;
 };
 
-const ConnectedPage = connect((state: ConnectState) => ({
-  authenticated: state.auth.authenticated,
-}))(EmailChangePage);
-ConnectedPage.title = "account.emailchange.title";
-
-export default ConnectedPage;
+export default EmailChangePage;

@@ -1,5 +1,5 @@
-query collectionDetailQuery($collection: ID!, $lang: LanguageCodeEnum!) {
-  collection(id: $collection) {
+query collectionDetailQuery($collection: String, $channel: String, $lang: LanguageCodeEnum!) {
+  collection(slug: $collection, channel: $channel) {
     ...BasicCollectionDetails
     seoTitle
     seoDescription

@@ -1,34 +1,34 @@
 import React, { useState } from "react";
 import { Typography, Row, Col, Card, Tabs, Button } from "antd";
-import { Helmet } from "react-helmet";
-import { useIntl, connect, Redirect, useLocation } from "umi";
-import VSpacing from "@/components/VSpacing";
-import { ConnectState } from "@/models/connect";
 import AuthTabs from "@/components/AuthTabs";
-import ResetPasswordRequestForm from "@/components/ResetPasswordRequestForm";
+import ResetPasswordRequestForm from "@/components/forms/ResetPasswordRequestForm";
 import { LeftOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
+import { Head } from "rakkasjs";
 
-const WhoPage = ({ authenticated }) => {
+const WhoPage = () => {
   const { t } = useTranslation();
-  const loc = useLocation();
+  // const {
+  //   current: { searchParams },
+  // } = useLocation();
   const [activeTab, setActiveTab] = useState("0");
-  if (authenticated) {
-    const redirect = loc?.query?.redirect || "/";
-    return <Redirect to={redirect} />;
-  }
+
+  // TODO: replace with route guard
+  // if (authenticated) {
+  //   const redirect = searchParams.get("redirect") || "/";
+  //   return <Redirect to={redirect} />;
+  // }
+
   return (
-    <div>
-      <Helmet>
-        <meta name="description" content={t("who.meta")} />
-      </Helmet>
-      <VSpacing height={24} />
+    <div className="pt-6 pb-12">
+      <Head title={t("who.title")} meta={[{ name: "description", content: t("who.meta") }]} />
       <Row justify="center">
         <Col span={22}>
           <Typography.Title id="page-heading" className="text-center" level={1}>
             {t("who.heading")}
           </Typography.Title>
           <Row justify="center">
-            <Col span={8} xs={24} sm={24} md={16} lg={12} xl={10} xxl={8}>
+            <Col xs={24} md={16} lg={12} xl={10} xxl={8}>
               <Card>
                 <Tabs activeKey={activeTab}>
                   <Tabs.TabPane key="0">
@@ -39,12 +39,11 @@ const WhoPage = ({ authenticated }) => {
                     />
                   </Tabs.TabPane>
                   <Tabs.TabPane key="1">
-                    <Row>
+                    <Row className="mb-6">
                       <Button onClick={() => setActiveTab("0")}>
                         <LeftOutlined /> {t("misc.back")}
                       </Button>
                     </Row>
-                    <VSpacing height={24} />
                     <ResetPasswordRequestForm />
                   </Tabs.TabPane>
                 </Tabs>
@@ -53,14 +52,8 @@ const WhoPage = ({ authenticated }) => {
           </Row>
         </Col>
       </Row>
-      <VSpacing height={48} />
     </div>
   );
 };
 
-const ConnectedPage = connect((state: ConnectState) => ({
-  authenticated: state.auth.authenticated,
-}))(WhoPage);
-
-ConnectedPage.title = "who.title";
-export default ConnectedPage;
+export default WhoPage;

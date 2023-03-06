@@ -1,14 +1,18 @@
 import React, { useEffect } from "react";
-import { useIntl, useLocation, history, connect, ConnectRC, Link } from "umi";
 import Loader from "@/components/Loader";
 import { Button, notification, Result } from "antd";
 import { FrownOutlined } from "@ant-design/icons";
-import VSpacing from "@/components/VSpacing";
+import { Head, Link, navigate, useLocation } from "rakkasjs";
+import { useTranslation } from "react-i18next";
 
-const AccountDeactivatePage: ConnectRC = ({ dispatch }) => {
+const AccountDeactivatePage: React.FC = () => {
   const { t } = useTranslation();
-  const location = useLocation();
-  const token = location.query?.token || null;
+  const {
+    current: { searchParams },
+  } = useLocation();
+  const token = searchParams.get("token");
+
+  const dispatch = (x) => x;
   useEffect(() => {
     if (token) {
       dispatch?.({
@@ -21,7 +25,7 @@ const AccountDeactivatePage: ConnectRC = ({ dispatch }) => {
               description: t("account.deactivate.success.desc"),
               icon: <FrownOutlined />,
             });
-            history.push("/");
+            navigate("/");
           },
         },
       });
@@ -30,29 +34,23 @@ const AccountDeactivatePage: ConnectRC = ({ dispatch }) => {
 
   if (!token) {
     return (
-      <>
-        <VSpacing height={48} />
+      <div className="pt-6 pb-12">
+        <Head title={t("account.deactivate.title")} />
         <Result
           status="error"
           extra={[
-            <Link to="/">
-              <Button type="primary" key="0">
-                {t("misc.backToHome")}
-              </Button>
+            <Link href="/" key="0">
+              <Button type="primary">{t("misc.backToHome")}</Button>
             </Link>,
           ]}
           title={t("account.confirm.invalidUrl")}
           subTitle={t("account.confirm.invalidUrl.desc")}
         />
-        <VSpacing height={48} />
-      </>
+      </div>
     );
   }
 
   return <Loader />;
 };
 
-const ConnectedPage = connect()(AccountDeactivatePage);
-ConnectedPage.title = "account.deactivate.title";
-
-export default ConnectedPage;
+export default AccountDeactivatePage;

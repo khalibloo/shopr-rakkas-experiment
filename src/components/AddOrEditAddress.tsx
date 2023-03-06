@@ -2,11 +2,9 @@ import React from "react";
 import { Button, Modal } from "antd";
 
 import { useBoolean } from "ahooks";
-import AddressForm from "./AddressForm";
-import { useIntl, connect } from "umi";
 import { ButtonProps } from "antd/lib/button";
-import { AddressInput } from "@/globalTypes";
-import { AddressDetails } from "@/fragments/types/AddressDetails";
+import { useTranslation } from "react-i18next";
+import AddressForm from "@/components/forms/AddressForm";
 
 interface Props {
   formId: string;
@@ -17,7 +15,9 @@ interface Props {
   onClick: () => void;
   onAddOrEdit?: (address: AddressInput) => void;
   buttonProps: ButtonProps;
+  children: React.ReactElement;
 }
+
 const AddOrEditAddress: React.FC<Props> = ({
   formId,
   address,
@@ -30,7 +30,8 @@ const AddOrEditAddress: React.FC<Props> = ({
   isLoading,
 }) => {
   const { t } = useTranslation();
-  const { state: modalOpen, setTrue: openModal, setFalse: closeModal } = useBoolean(false);
+  const [modalOpen, { setTrue: openModal, setFalse: closeModal }] = useBoolean();
+
   return (
     <>
       <Modal
@@ -70,4 +71,4 @@ const AddOrEditAddress: React.FC<Props> = ({
   );
 };
 
-export default connect()(AddOrEditAddress);
+export default AddOrEditAddress;

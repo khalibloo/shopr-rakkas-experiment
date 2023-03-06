@@ -1,14 +1,14 @@
-import * as React from "react";
-import { Link, useIntl } from "umi";
-import { Card, Typography, Row, Col } from "antd";
-import AspectRatio from "./AspectRatio";
+import { Card, Typography, Row, Col, Image } from "antd";
 import { formatPrice, getProductName } from "@/utils/utils";
+import { useTranslation } from "react-i18next";
+import { Link } from "rakkasjs";
 
 interface Props {
   variant: any; //VariantListItemType;
   qty?: number;
 }
-const VariantListItem: React.FunctionComponent<Props> = ({ variant, qty }) => {
+
+const VariantListItem: React.FC<Props> = ({ variant, qty }) => {
   const { t } = useTranslation();
   const thumbnail = variant.images[0] ? variant.images[0] : variant.product?.thumbnail;
   const currency = variant.pricing?.price?.gross.currency as string;
@@ -16,15 +16,19 @@ const VariantListItem: React.FunctionComponent<Props> = ({ variant, qty }) => {
   return (
     <Card>
       <Row gutter={24}>
-        <Col span={4} xs={8} md={6} lg={4}>
-          <Link to={`/products/${variant.product.slug}`}>
-            <AspectRatio width={1} height={1}>
-              <img className="w-full" alt={thumbnail?.alt} src={thumbnail?.url} loading="lazy" />
-            </AspectRatio>
+        <Col xs={8} md={6} lg={4}>
+          <Link href={`/products/${variant.product.slug}`}>
+            <Image
+              preview={false}
+              className="w-full aspect-square"
+              alt={thumbnail?.alt}
+              src={thumbnail?.url}
+              loading="lazy"
+            />
           </Link>
         </Col>
         <Col span={20} xs={16} md={18} lg={20}>
-          <Link to={`/products/${variant.product.slug}`}>
+          <Link href={`/products/${variant.product.slug}`}>
             <Typography.Title level={4}>{getProductName(variant.product)}</Typography.Title>
           </Link>
           <Typography.Title level={4}>{formatPrice(currency, price)}</Typography.Title>

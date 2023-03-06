@@ -1,4 +1,3 @@
-import * as React from "react";
 import { Row, Col, Typography, Select, Button } from "antd";
 import { FilterOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
@@ -10,6 +9,7 @@ interface Props {
   onOpenFilterDrawer?: () => void;
   value?: string;
 }
+
 const FilterBar: React.FC<Props> = ({ id, value, hideFilters, onSortChange, onOpenFilterDrawer }) => {
   const { t } = useTranslation();
   return (

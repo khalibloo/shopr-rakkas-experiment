@@ -1,38 +1,41 @@
 import React from "react";
-import { Typography, Row, Col, Card, List, Skeleton, Button, Modal } from "antd";
+import { Typography, Row, Col, Card, List, Button, Modal } from "antd";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
-import { useIntl, connect } from "umi";
-import VSpacing from "@/components/VSpacing";
 import AddOrEditAddress from "@/components/AddOrEditAddress";
 import AddressCard from "@/components/AddressCard";
-import { useQuery } from "@apollo/client";
-import { profileQuery } from "@/queries/types/profileQuery";
-import { PROFILE_PAGE_QUERY } from "@/queries/profile";
-import EditNameForm from "@/components/EditNameForm";
+import EditNameForm from "@/components/forms/EditNameForm";
 import { useBoolean } from "ahooks";
-import { ConnectState, Loading } from "@/models/connect";
+import { Head, PageProps, useSSQ } from "rakkasjs";
+import { useTranslation } from "react-i18next";
+import { getSdk } from "@adapters/saleor/generated/graphql";
+import { GraphQLClient } from "graphql-request";
+import config from "@/config";
 
-interface Props {
-  loading: Loading;
-}
-const ProfilePage: React.FC<Props> = ({ loading }) => {
+const ProfilePage: React.FC<PageProps> = () => {
   const { t } = useTranslation();
-  const { state: editNameModalOpen, setTrue: openEditNameModal, setFalse: closeEditNameModal } = useBoolean(false);
-  const { loading: fetching, error, data } = useQuery<profileQuery>(PROFILE_PAGE_QUERY);
+  const [editNameModalOpen, { setTrue: openEditNameModal, setFalse: closeEditNameModal }] = useBoolean();
+
+  const { data } = useSSQ(async (ctx) => {
+    const client = new GraphQLClient(config.apiEndpoint, { fetch: ctx.fetch });
+    const sdk = getSdk(client);
+    const res = await sdk.profileQuery();
+    return res;
+  });
+
   return (
-    <div>
-      <VSpacing height={24} />
+    <div className="pt-6 pb-12">
+      <Head title={t("profile.title")} />
       <Modal
         destroyOnClose
         okText={t("misc.saveChanges")}
         okButtonProps={{
           form: "editname-form",
           htmlType: "submit",
-          loading: loading.effects["auth/updateName"],
+          // loading: loading.effects["auth/updateName"],
         }}
         onCancel={closeEditNameModal}
         title={t("profile.editName")}
-        visible={editNameModalOpen}
+        open={editNameModalOpen}
       >
         <EditNameForm
           id="editname-form"
@@ -48,9 +51,10 @@ const ProfilePage: React.FC<Props> = ({ loading }) => {
             {t("profile.heading")}
           </Typography.Title>
           <Row justify="center">
-            <Col id="content-col" span={12} xs={24} sm={24} md={16} lg={12} xl={12} xxl={8}>
+            <Col id="content-col" xs={24} md={16} lg={12} xxl={8}>
               <Card
                 id="personal-info-card"
+                className="mb-6"
                 title={t("profile.personalInfo")}
                 extra={
                   <Button onClick={openEditNameModal}>
@@ -58,18 +62,15 @@ const ProfilePage: React.FC<Props> = ({ loading }) => {
                   </Button>
                 }
               >
-                <Skeleton active avatar={false} title={{ width: "30%" }} paragraph={{ rows: 1 }} loading={fetching}>
-                  <div>
-                    <Typography.Text strong>{t("profile.name")}</Typography.Text>
-                  </div>
-                  <div>
-                    <Typography.Text id="name">
-                      {data?.me?.firstName} {data?.me?.lastName}
-                    </Typography.Text>
-                  </div>
-                </Skeleton>
+                <div>
+                  <Typography.Text strong>{t("profile.name")}</Typography.Text>
+                </div>
+                <div>
+                  <Typography.Text id="name">
+                    {data?.me?.firstName} {data?.me?.lastName}
+                  </Typography.Text>
+                </div>
               </Card>
-              <VSpacing height={24} />
               <Card id="addresses-card" title={t("profile.addresses")}>
                 <List
                   dataSource={[...(data?.me?.addresses || []), {}]}
@@ -104,14 +105,8 @@ const ProfilePage: React.FC<Props> = ({ loading }) => {
           </Row>
         </Col>
       </Row>
-      <VSpacing height={48} />
     </div>
   );
 };
 
-const ConnectedPage = connect((state: ConnectState) => ({
-  loading: state.loading,
-}))(ProfilePage);
-
-ConnectedPage.title = "profile.title";
-export default ConnectedPage;
+export default ProfilePage;

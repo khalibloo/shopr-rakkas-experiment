@@ -1,24 +1,21 @@
 import React from "react";
 import { Card, Typography, Button, Modal, notification, Switch, Space } from "antd";
-import { useIntl, connect, ConnectRC } from "umi";
 import { EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { useBoolean } from "ahooks";
-import { Loading, ConnectState } from "@/models/connect";
-import AddressForm from "./AddressForm";
+import AddressForm from "@/components/forms/AddressForm";
 import Logger from "@/utils/logger";
-import { AddressDetails } from "@/fragments/types/AddressDetails";
-import VSpacing from "./VSpacing";
-import { AddressTypeEnum } from "@/globalTypes";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   address: AddressDetails;
-  loading: Loading;
   hideActions: boolean;
   hideCard: boolean;
 }
-const AddressCard: React.FC<Props> = ({ address, hideActions, hideCard, loading, dispatch }) => {
+
+const AddressCard: React.FC<Props> = ({ address, hideActions, hideCard }) => {
   const { t } = useTranslation();
-  const { state: editAddrModalOpen, setTrue: openEditAddrModal, setFalse: closeEditAddrModal } = useBoolean(false);
+  const [editAddrModalOpen, { setTrue: openEditAddrModal, setFalse: closeEditAddrModal }] = useBoolean();
+  const dispatch = (x) => x;
 
   const content = (
     <>
@@ -53,13 +50,12 @@ const AddressCard: React.FC<Props> = ({ address, hideActions, hideCard, loading,
       </div>
       {!hideActions && (
         <>
-          <VSpacing height={16} />
-          <div>
+          <div className="mt-4">
             <Space>
               <Switch
                 checked={Boolean(address.isDefaultShippingAddress)}
                 disabled={Boolean(address.isDefaultShippingAddress)}
-                loading={loading.effects["auth/setDefaultAddress"]}
+                // loading={loading.effects["auth/setDefaultAddress"]}
                 onChange={(checked) => {
                   if (checked) {
                     dispatch?.({
@@ -80,13 +76,12 @@ const AddressCard: React.FC<Props> = ({ address, hideActions, hideCard, loading,
               <Typography.Text>{t("profile.addresses.defaultShipping")}</Typography.Text>
             </Space>
           </div>
-          <VSpacing height={8} />
-          <div>
+          <div className="mt-2">
             <Space>
               <Switch
                 checked={Boolean(address.isDefaultBillingAddress)}
                 disabled={Boolean(address.isDefaultBillingAddress)}
-                loading={loading.effects["auth/setDefaultAddress"]}
+                // loading={loading.effects["auth/setDefaultAddress"]}
                 onChange={(checked) => {
                   if (checked) {
                     dispatch?.({
@@ -120,7 +115,7 @@ const AddressCard: React.FC<Props> = ({ address, hideActions, hideCard, loading,
         okButtonProps={{
           form: "edit-addr-form-" + address.id,
           htmlType: "submit",
-          loading: loading.effects["auth/updateAddress"],
+          // loading: loading.effects["auth/updateAddress"],
         }}
         onCancel={closeEditAddrModal}
         title={t("profile.editAddress")}
@@ -159,7 +154,7 @@ const AddressCard: React.FC<Props> = ({ address, hideActions, hideCard, loading,
                                   notification.success({
                                     message: t("misc.save.success"),
                                   });
-                                  resolve();
+                                  resolve(true);
                                 },
                                 onError: (err) => reject(err),
                               },
@@ -167,7 +162,7 @@ const AddressCard: React.FC<Props> = ({ address, hideActions, hideCard, loading,
                           });
                         },
                         okButtonProps: {
-                          loading: loading.effects["auth/deleteAddress"],
+                          // loading: loading.effects["auth/deleteAddress"],
                         },
                         okType: "danger",
                       })
@@ -185,4 +180,4 @@ const AddressCard: React.FC<Props> = ({ address, hideActions, hideCard, loading,
   );
 };
 
-export default connect((state: ConnectState) => ({ loading: state.loading }))(AddressCard);
+export default AddressCard;

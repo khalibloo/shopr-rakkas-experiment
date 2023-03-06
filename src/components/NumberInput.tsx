@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button, Input, InputNumber } from "antd";
 import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
-import clx from "classnames";
+import clsx from "clsx";
 import _ from "lodash";
 import { InputNumberProps } from "antd/lib/input-number";
 import { ButtonProps } from "antd/lib/button";
@@ -9,10 +9,10 @@ import { ButtonProps } from "antd/lib/button";
 interface Props extends InputNumberProps {
   step?: number;
   groupSize?: "small" | "default" | "large";
-  onChange?: (value?: number | string) => void;
   decrementBtnProps?: ButtonProps;
   incrementBtnProps?: ButtonProps;
 }
+
 const NumberInput: React.FC<Props> = (props) => {
   const {
     className,
@@ -45,7 +45,7 @@ const NumberInput: React.FC<Props> = (props) => {
         {...decrementBtnProps}
         disabled={disabled || value === min}
         onClick={(e) => {
-          if (value != null) {
+          if (typeof value === "number") {
             updateValue(value - step);
           }
           decrementBtnProps?.onClick?.(e);
@@ -57,7 +57,7 @@ const NumberInput: React.FC<Props> = (props) => {
       </Button>
       <InputNumber
         {...rest}
-        className={clx("hide-arrows", className)}
+        className={clsx("hide-arrows", className)}
         disabled={disabled}
         value={value}
         min={min}
@@ -76,7 +76,7 @@ const NumberInput: React.FC<Props> = (props) => {
         {...incrementBtnProps}
         disabled={disabled || value === max}
         onClick={(e) => {
-          if (value != null) {
+          if (typeof value === "number") {
             updateValue(value + step);
           }
           incrementBtnProps?.onClick?.(e);

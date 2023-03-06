@@ -25453,7 +25453,8 @@ export type CategoryTreeQueryQuery = {
 };
 
 export type CollectionDetailQueryQueryVariables = Exact<{
-  collection: Scalars["ID"];
+  collection?: InputMaybe<Scalars["String"]>;
+  channel?: InputMaybe<Scalars["String"]>;
   lang: LanguageCodeEnum;
 }>;
 
@@ -26763,8 +26764,8 @@ export const CategoryTreeQueryDocument = gql`
   ${BasicCategoryDetailsFragmentDoc}
 `;
 export const CollectionDetailQueryDocument = gql`
-  query collectionDetailQuery($collection: ID!, $lang: LanguageCodeEnum!) {
-    collection(id: $collection) {
+  query collectionDetailQuery($collection: String, $channel: String, $lang: LanguageCodeEnum!) {
+    collection(slug: $collection, channel: $channel) {
       ...BasicCollectionDetails
       seoTitle
       seoDescription

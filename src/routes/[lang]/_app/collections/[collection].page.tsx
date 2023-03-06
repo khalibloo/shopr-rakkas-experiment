@@ -1,42 +1,48 @@
+import React from "react";
 import { Typography, Row, Col } from "antd";
 
-import VSpacing from "@/components/VSpacing";
-import { formatTitle, getCategoryName, getCategorySeoDesc } from "@/utils/utils";
-import { Head, PageProps, useQuery, useSSQ } from "rakkasjs";
+import { formatTitle, getCollectionName, getCollectionSeoDesc } from "@/utils/utils";
+import Products from "@/components/Products";
+import { Head, PageProps, useSSQ } from "rakkasjs";
 import config from "@/config";
 import { GraphQLClient } from "graphql-request";
 import { getSdk } from "@adapters/saleor/generated/graphql";
-import Products from "@/components/Products";
 
 interface Params {
-  category: string;
+  collection: string;
   lang: string;
 }
 
-const CategoryDetailPage: React.FC<PageProps<Params>> = ({ params }) => {
-  const { category: categorySlug, lang } = params;
+const CollectionDetailPage: React.FC<PageProps<Params>> = ({ params: { collection: collectionSlug, lang } }) => {
   // const qKey = JSON.stringify(["category", { id: categorySlug, lang }]);
   const { data } = useSSQ(async (ctx) => {
     const client = new GraphQLClient(config.apiEndpoint, { fetch: ctx.fetch });
     const sdk = getSdk(client);
-    const res = await sdk.categoryDetailQuery({ category: categorySlug, lang: lang.toUpperCase() as any });
+    const res = await sdk.collectionDetailQuery({
+      collection: collectionSlug,
+      channel: "default-channel",
+      lang: lang.toUpperCase() as any,
+    });
     return res;
   });
 
   return (
-    <div>
-      <Head
-        title={formatTitle(getCategoryName(data.category))}
-        meta={[{ name: "description", content: getCategorySeoDesc(data.category) }]}
-      />
+    <div className="pb-12">
+      {data?.collection?.name && (
+        <Head
+          title={formatTitle(getCollectionName(data.collection))}
+          meta={[{ name: "description", content: getCollectionSeoDesc(data.collection) }]}
+        />
+      )}
       <div className="overflow-hidden relative" style={{ height: 300 }}>
         <img
+          id="banner-img"
           className="w-full h-full absolute top-0 left-0 object-cover"
-          src={data?.category?.backgroundImage?.url}
-          alt={data?.category?.backgroundImage?.alt || ""}
+          src={data?.collection?.backgroundImage?.url}
+          alt={data?.collection?.backgroundImage?.alt || ""}
           loading="lazy"
         />
-        {data?.category?.name && (
+        {data?.collection?.name && (
           <Row className="h-full" justify="center" align="middle">
             <Col
               className="py-2 px-8"
@@ -45,22 +51,15 @@ const CategoryDetailPage: React.FC<PageProps<Params>> = ({ params }) => {
               }}
             >
               <Typography.Title id="title" className="text-center m-0 inverse-text" level={1}>
-                {getCategoryName(data.category)}
+                {getCollectionName(data.collection)}
               </Typography.Title>
             </Col>
           </Row>
         )}
       </div>
-      <Products
-        categoryID={data?.category?.id}
-        showCollectionFilter
-        showCategoryFilter
-        listName={data?.category?.name}
-        lang={lang}
-      />
-      <VSpacing height={48} />
+      <Products collectionID={data?.collection?.id} showCategoryFilter listName={data?.collection?.name} lang={lang} />
     </div>
   );
 };
 
-export default CategoryDetailPage;
+export default CollectionDetailPage;

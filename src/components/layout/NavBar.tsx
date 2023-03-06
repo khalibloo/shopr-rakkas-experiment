@@ -68,6 +68,7 @@ const NavBar: React.FC<Props> = ({ authenticated, localCheckout, authModalOpen, 
       <Menu.Item key="fr-FR">Français</Menu.Item>
     </Menu>
   );
+
   const avatarMenu = (
     <Menu>
       <Menu.Item>
@@ -235,7 +236,7 @@ const NavBar: React.FC<Props> = ({ authenticated, localCheckout, authModalOpen, 
       </Drawer>
       <Row justify="space-between" align="middle" className="h-full">
         <Col className="h-full">
-          <Menu mode="horizontal" className="bg-transparent border-none h-full" selectable={false}>
+          <Menu mode="horizontal" className="bg-transparent border-none h-full" selectable={false} disabledOverflow>
             <Menu.Item key="1" className="h-full block">
               <Link href="/" className="h-full">
                 <Row align="middle" className="h-full">

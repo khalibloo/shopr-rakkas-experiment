@@ -16,7 +16,9 @@ configResponsive({
 });
 
 const hooks: CommonHooks = {
-  wrapApp: (app) => <ConfigProvider>{app}</ConfigProvider>,
+  wrapApp: (app) => (
+    <ConfigProvider theme={{ components: { Layout: { colorBgHeader: "#fff" } } }}>{app}</ConfigProvider>
+  ),
 };
 
 export default hooks;

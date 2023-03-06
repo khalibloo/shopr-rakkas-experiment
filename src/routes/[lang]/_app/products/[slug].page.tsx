@@ -1,17 +1,13 @@
-import React, { useState, createRef, useEffect } from "react";
+import React, { useState, createRef, useEffect, useRef } from "react";
 import { Typography, Row, Col, Button, Select, List, Affix, Card, Skeleton, Carousel, notification } from "antd";
-import clx from "classnames";
-import { Helmet } from "react-helmet";
+import clsx from "clsx";
 import RichTextContent from "@/components/RichTextContent";
 import AspectRatio from "@/components/AspectRatio";
-import VSpacing from "@/components/VSpacing";
-import { useIntl, useParams, useDispatch, connect, ConnectRC } from "umi";
 import {
   formatPrice,
   formatTitle,
   getAttributeName,
   getAttributeValueName,
-  getLangCode,
   getProductDescriptionJson,
   getProductName,
   getScreenSize,
@@ -20,18 +16,13 @@ import ProductCard from "@/components/ProductCard";
 import { ListGridType } from "antd/lib/list";
 import { useResponsive, useSize } from "ahooks";
 import { DownOutlined, UpOutlined } from "@ant-design/icons";
-import { useQuery } from "@apollo/client";
-import {
-  productDetailQuery,
-  productDetailQueryVariables,
-  productDetailQuery_product_variants,
-} from "@/queries/types/productDetailQuery";
-import { PRODUCT_DETAIL_PAGE_QUERY } from "@/queries/productDetail";
-import SkeletonDiv from "@/components/SkeletonDiv";
 import _ from "lodash";
-import { ConnectState, Loading } from "@/models/connect";
 import NumberInput from "@/components/NumberInput";
 import config from "@/config";
+import { Head, PageProps, useSSQ } from "rakkasjs";
+import { useTranslation } from "react-i18next";
+import { getSdk } from "@adapters/saleor/generated/graphql";
+import { GraphQLClient } from "graphql-request";
 
 interface AttrValue {
   id: string;
@@ -41,6 +32,7 @@ interface AttrValue {
     name: string;
   };
 }
+
 interface VariantAttr {
   id: string;
   name: string;
@@ -51,24 +43,22 @@ interface VariantAttr {
   };
   selection: string | undefined;
 }
-interface Props {
-  loading: Loading;
-}
-const ProductDetailPage: React.FC<Props> = ({ loading }) => {
-  const carouselRef = createRef<Carousel>();
 
+interface Params {
+  lang: string;
+  product: string;
+}
+
+const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, product: productSlug } }) => {
+  const carouselRef = useRef<typeof Carousel>();
   const { t } = useTranslation();
-  const dispatch = useDispatch();
-  const { slug } = useParams<{ slug: string }>();
-  const {
-    loading: fetching,
-    error,
-    data,
-  } = useQuery<productDetailQuery, productDetailQueryVariables>(PRODUCT_DETAIL_PAGE_QUERY, {
-    variables: {
-      productSlug: slug as string,
-      lang: getLangCode(),
-    },
+  const dispatch = (x) => x;
+
+  const { data } = useSSQ(async (ctx) => {
+    const client = new GraphQLClient(config.apiEndpoint, { fetch: ctx.fetch });
+    const sdk = getSdk(client);
+    const res = await sdk.productDetailQuery({ productSlug, lang: lang.toUpperCase() as any });
+    return res;
   });
   const [selectedImg, setSelectedImg] = useState(0);
   const [variantAttrs, setVariantAttrs] = useState<VariantAttr[]>([]);
@@ -76,8 +66,10 @@ const ProductDetailPage: React.FC<Props> = ({ loading }) => {
   const [qty, setQty] = useState(1);
   const responsive: any = useResponsive();
   const screenSize = getScreenSize(responsive);
-  const [imgSize, imgRef] = useSize<HTMLDivElement>();
-  const [thumbsColSize, thumbsColRef] = useSize<HTMLDivElement>();
+  const imgRef = useRef();
+  const imgSize = useSize(imgRef);
+  const thumbsColRef = useRef();
+  const thumbsColSize = useSize(thumbsColRef);
 
   const product = data?.product;
 
@@ -146,33 +138,33 @@ const ProductDetailPage: React.FC<Props> = ({ loading }) => {
   // if we navigate to different product, scroll to top
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [slug]);
+  }, [productSlug]);
 
-  useEffect(() => {
-    // Google Ecommerce - track detail view
-    if (!config.gtmEnabled) {
-      return;
-    }
-    if (!product) {
-      return;
-    }
-    window.dataLayer.push({
-      event: "view_item",
-      ecommerce: {
-        currency: product.pricing?.priceRange?.start?.gross.currency,
-        items: [
-          {
-            item_name: product.name,
-            item_id: selectedVariant?.sku,
-            price: selectedVariant?.pricing?.price?.gross.amount || product.pricing?.priceRange?.start?.gross.amount,
-            item_category: product.category?.name,
-            item_variant: selectedVariant?.name,
-            quantity: qty,
-          },
-        ],
-      },
-    });
-  }, [product, selectedVariant]);
+  // useEffect(() => {
+  //   // Google Ecommerce - track detail view
+  //   if (!config.gtmEnabled) {
+  //     return;
+  //   }
+  //   if (!product) {
+  //     return;
+  //   }
+  //   window.dataLayer.push({
+  //     event: "view_item",
+  //     ecommerce: {
+  //       currency: product.pricing?.priceRange?.start?.gross.currency,
+  //       items: [
+  //         {
+  //           item_name: product.name,
+  //           item_id: selectedVariant?.sku,
+  //           price: selectedVariant?.pricing?.price?.gross.amount || product.pricing?.priceRange?.start?.gross.amount,
+  //           item_category: product.category?.name,
+  //           item_variant: selectedVariant?.name,
+  //           quantity: qty,
+  //         },
+  //       ],
+  //     },
+  //   });
+  // }, [product, selectedVariant]);
 
   const productGrid: ListGridType = {
     gutter: 24,
@@ -187,32 +179,32 @@ const ProductDetailPage: React.FC<Props> = ({ loading }) => {
     .filter((e) => e.node.id !== product.id)
     .slice(0, productGrid[screenSize]);
 
-  useEffect(() => {
-    // Google Ecommerce - track suggestions view
-    if (!config.gtmEnabled) {
-      return;
-    }
-    if (!suggestions) {
-      return;
-    }
-    window.dataLayer.push({
-      event: "view_item_list",
-      ecommerce: {
-        currency: product?.pricing?.priceRange?.start?.gross.currency,
-        items: suggestions.map((edge, i) => {
-          const p = edge.node;
-          return {
-            item_name: p.name,
-            price: p.pricing?.priceRange?.start?.gross.amount,
-            item_category: p.category?.name,
-            item_list_name: "Product Suggestions",
-            item_list_id: data?.product?.category?.id,
-            index: i,
-          };
-        }),
-      },
-    });
-  }, [suggestions]);
+  // useEffect(() => {
+  //   // Google Ecommerce - track suggestions view
+  //   if (!config.gtmEnabled) {
+  //     return;
+  //   }
+  //   if (!suggestions) {
+  //     return;
+  //   }
+  //   window.dataLayer.push({
+  //     event: "view_item_list",
+  //     ecommerce: {
+  //       currency: product?.pricing?.priceRange?.start?.gross.currency,
+  //       items: suggestions.map((edge, i) => {
+  //         const p = edge.node;
+  //         return {
+  //           item_name: p.name,
+  //           price: p.pricing?.priceRange?.start?.gross.amount,
+  //           item_category: p.category?.name,
+  //           item_list_name: "Product Suggestions",
+  //           item_list_id: data?.product?.category?.id,
+  //           index: i,
+  //         };
+  //       }),
+  //     },
+  //   });
+  // }, [suggestions]);
 
   const images =
     selectedVariant && (selectedVariant.images?.length || 0) > 0 ? selectedVariant.images : product?.images;
@@ -223,37 +215,31 @@ const ProductDetailPage: React.FC<Props> = ({ loading }) => {
   const maxPrice = selectedVariant ? undefined : (product?.pricing?.priceRange?.stop?.gross.amount as number);
 
   const priceLabel = (
-    <SkeletonDiv active className="m-auto" loading={fetching} style={{ height: 21, width: "30%" }}>
-      <Typography.Title id="price-lbl" className="text-center" level={3}>
-        {formatPrice(currency, minPrice, maxPrice)}
-      </Typography.Title>
-    </SkeletonDiv>
+    <Typography.Title id="price-lbl" className="text-center" level={3}>
+      {formatPrice(currency, minPrice, maxPrice)}
+    </Typography.Title>
   );
 
   const qtySelector = (
     <Row id="qty-row" justify="center" gutter={36}>
       <Col>
-        <SkeletonDiv active loading={fetching} style={{ height: 24, width: 100 }}>
-          <Typography.Title id="qty-lbl" level={4}>
-            {t("misc.qty")}:{" "}
-          </Typography.Title>
-        </SkeletonDiv>
+        <Typography.Title id="qty-lbl" level={4}>
+          {t("misc.qty")}:{" "}
+        </Typography.Title>
       </Col>
-      <Col span={10} xs={16} sm={10} md={12} lg={14} xl={12} xxl={10}>
-        <SkeletonDiv active loading={fetching} style={{ height: 40 }}>
-          <NumberInput
-            id="qty-fld"
-            value={qty}
-            disabled={fetching || !selectedVariant}
-            min={1}
-            max={selectedVariant?.quantityAvailable}
-            maxLength={2}
-            size="large"
-            onChange={setQty}
-            decrementBtnProps={{ id: "qty-dec" }}
-            incrementBtnProps={{ id: "qty-inc" }}
-          />
-        </SkeletonDiv>
+      <Col xs={16} sm={10} md={12} lg={14} xl={12} xxl={10}>
+        <NumberInput
+          id="qty-fld"
+          value={qty}
+          disabled={!selectedVariant}
+          min={1}
+          max={selectedVariant?.quantityAvailable}
+          maxLength={2}
+          size="large"
+          onChange={setQty}
+          decrementBtnProps={{ id: "qty-dec" }}
+          incrementBtnProps={{ id: "qty-inc" }}
+        />
       </Col>
     </Row>
   );
@@ -262,8 +248,8 @@ const ProductDetailPage: React.FC<Props> = ({ loading }) => {
     <Button
       id="add-to-cart-btn"
       block
-      disabled={fetching || !selectedVariant}
-      loading={loading.effects["cart/addItem"]}
+      disabled={!selectedVariant}
+      // loading={loading.effects["cart/addItem"]}
       onClick={() =>
         dispatch({
           type: "cart/addItem",
@@ -288,20 +274,18 @@ const ProductDetailPage: React.FC<Props> = ({ loading }) => {
   );
   return (
     <div className="flex flex-col flex-grow">
-      {product?.name && (
-        <Helmet>
-          <title>{formatTitle(getProductName(product))}</title>
-          <meta name="description" content={getProductName(product)} />
-        </Helmet>
-      )}
+      <Head>
+        <title>{formatTitle(getProductName(product))}</title>
+        <meta name="description" content={getProductName(product)} />
+      </Head>
       <VSpacing height={!responsive.lg ? 8 : 48} />
       <Row justify="center">
         <Col span={22}>
           <Row justify="center" gutter={24}>
-            <Col span={12} xs={24} sm={24} md={24} lg={12} xl={12} xxl={12}>
+            <Col xs={24} lg={12}>
               <Row gutter={[8, 8]}>
                 <Col span={4}>
-                  {thumbsColSize.height && imgSize.height && thumbsColSize.height > imgSize.height && (
+                  {thumbsColSize?.height && imgSize?.height && thumbsColSize.height > imgSize.height && (
                     <>
                       <Button
                         block
@@ -323,16 +307,16 @@ const ProductDetailPage: React.FC<Props> = ({ loading }) => {
                     id="thumbs-container"
                     className="overflow-y-auto"
                     style={{
-                      height: imgSize.height ? imgSize.height - 80 : undefined,
+                      height: imgSize?.height ? imgSize.height - 80 : undefined,
                     }}
                   >
                     <div ref={thumbsColRef}>
-                      {(fetching ? _.fill(Array(3), null) : images)?.map((image, i) => (
+                      {images?.map((image, i) => (
                         <div key={image?.id || i}>
                           <AspectRatio width={1} height={1} noMask>
                             <Button
                               id={`thumb-btn-${i}`}
-                              className={clx(
+                              className={clsx(
                                 "w-full h-full p-0 transition-transform ease-in-out duration-100",
                                 "thumb-btns",
                                 {
@@ -342,9 +326,7 @@ const ProductDetailPage: React.FC<Props> = ({ loading }) => {
                               )}
                               onClick={() => carouselRef.current?.goTo(i)}
                             >
-                              <SkeletonDiv active loading={fetching}>
-                                <img className="w-full" alt={image?.alt || ""} src={image?.url} loading="lazy" />
-                              </SkeletonDiv>
+                              <img className="w-full" alt={image?.alt || ""} src={image?.url} loading="lazy" />
                             </Button>
                           </AspectRatio>
                           <VSpacing height={8} />
@@ -352,7 +334,7 @@ const ProductDetailPage: React.FC<Props> = ({ loading }) => {
                       ))}
                     </div>
                   </div>
-                  {thumbsColSize.height && imgSize.height && thumbsColSize.height > imgSize.height && (
+                  {thumbsColSize?.height && imgSize?.height && thumbsColSize.height > imgSize.height && (
                     <>
                       <VSpacing height={8} />
                       <Button
@@ -372,78 +354,58 @@ const ProductDetailPage: React.FC<Props> = ({ loading }) => {
                   )}
                 </Col>
                 <Col span={20}>
-                  <div ref={imgRef}>
-                    <AspectRatio width={1} height={1}>
-                      <SkeletonDiv active loading={fetching}>
-                        <Carousel ref={carouselRef} beforeChange={(current, next) => setSelectedImg(next)}>
-                          {images?.map((image, i) => (
-                            <div key={image?.id}>
-                              <img
-                                id={`carousel-img-${i}`}
-                                className="w-full carousel-imgs"
-                                alt={image?.alt as string}
-                                src={image?.url}
-                                loading="lazy"
-                              />
-                            </div>
-                          ))}
-                        </Carousel>
-                      </SkeletonDiv>
-                    </AspectRatio>
+                  <div ref={imgRef} className="aspect-square">
+                    <Carousel ref={carouselRef} beforeChange={(current, next) => setSelectedImg(next)}>
+                      {images?.map((image, i) => (
+                        <div key={image?.id}>
+                          <img
+                            id={`carousel-img-${i}`}
+                            className="w-full carousel-imgs"
+                            alt={image?.alt as string}
+                            src={image?.url}
+                            loading="lazy"
+                          />
+                        </div>
+                      ))}
+                    </Carousel>
                   </div>
                 </Col>
               </Row>
             </Col>
             <Col span={12} xs={24} sm={24} md={24} lg={12} xl={12} xxl={12}>
               {!responsive.lg && <VSpacing height={24} />}
-              <Skeleton active loading={fetching} avatar={false} paragraph={{ rows: 1, width: "80%" }} title={false}>
-                <Typography.Title id="product-name" className={clx({ ["text-center"]: !responsive.lg })} level={1}>
-                  {getProductName(product)}
-                </Typography.Title>
-              </Skeleton>
+              <Typography.Title id="product-name" className={clsx({ ["text-center"]: !responsive.lg })} level={1}>
+                {getProductName(product)}
+              </Typography.Title>
               <div id="product-desc">
-                <Skeleton active loading={fetching} avatar={false} paragraph={{ rows: 6 }} title={false}>
-                  <RichTextContent contentJson={getProductDescriptionJson(product)} lines={10} />
-                </Skeleton>
+                <RichTextContent contentJson={getProductDescriptionJson(product)} lines={10} />
               </div>
               <VSpacing height={!responsive.lg ? 8 : 36} />
               <Row id="var-select-row" justify="center">
                 <Col span={14} xs={18} sm={16} md={14} lg={14} xl={12} xxl={10}>
-                  {fetching ? (
-                    <>
-                      <SkeletonDiv active loading={fetching} style={{ height: 40 }} />
-                      <VSpacing height={!responsive.lg ? 8 : 24} />
-                      <SkeletonDiv active loading={fetching} style={{ height: 40 }} />
-                    </>
-                  ) : (
-                    variantAttrs.map((vAttr, i) => {
-                      return (
-                        <Select
-                          id={`var-select-${i}`}
-                          className={clx("w-full", "var-select")}
-                          key={vAttr.id}
-                          size="large"
-                          placeholder={getAttributeName(vAttr)}
-                          onChange={(value) => {
-                            const selection = [...variantAttrs];
-                            selection[i] = { ...vAttr, selection: value };
-                            setVariantAttrs(selection);
-                          }}
-                          value={vAttr.selection}
-                        >
-                          {vAttr.values.map((val) => (
-                            <Select.Option
-                              className={`var-select-${i}-options`}
-                              key={val?.id}
-                              value={val?.id as string}
-                            >
-                              {getAttributeValueName(val)}
-                            </Select.Option>
-                          ))}
-                        </Select>
-                      );
-                    })
-                  )}
+                  {variantAttrs.map((vAttr, i) => {
+                    return (
+                      <Select
+                        id={`var-select-${i}`}
+                        className={clsx("w-full", "var-select")}
+                        key={vAttr.id}
+                        size="large"
+                        placeholder={getAttributeName(vAttr)}
+                        onChange={(value) => {
+                          const selection = [...variantAttrs];
+                          selection[i] = { ...vAttr, selection: value };
+                          setVariantAttrs(selection);
+                        }}
+                        value={vAttr.selection}
+                      >
+                        {vAttr.values.map((val) => (
+                          <Select.Option className={`var-select-${i}-options`} key={val?.id} value={val?.id as string}>
+                            {getAttributeValueName(val)}
+                          </Select.Option>
+                        ))}
+                      </Select>
+                    );
+                  })}
                 </Col>
               </Row>
               {responsive.lg && (
@@ -477,11 +439,9 @@ const ProductDetailPage: React.FC<Props> = ({ loading }) => {
       <Row justify="center">
         <Col span={22}>
           <Row justify="center">
-            <SkeletonDiv active className="w-1/2 m-auto mb-4" loading={fetching} style={{ height: 21 }}>
-              <Typography.Title level={1} id="product-suggestions-title">
-                {t("products.detail.suggestions")}
-              </Typography.Title>
-            </SkeletonDiv>
+            <Typography.Title level={1} id="product-suggestions-title">
+              {t("products.detail.suggestions")}
+            </Typography.Title>
           </Row>
           <List
             dataSource={fetching ? (_.range(4) as any[]) : suggestions}
@@ -526,4 +486,4 @@ const ProductDetailPage: React.FC<Props> = ({ loading }) => {
   );
 };
 
-export default connect((state: ConnectState) => ({ loading: state.loading }))(ProductDetailPage);
+export default ProductDetailPage;

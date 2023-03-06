@@ -1,8 +1,7 @@
-import * as React from "react";
 import { Tabs } from "antd";
-import SignupForm from "./SignupForm";
+import SignupForm from "@/components/forms/SignupForm";
 import LoginForm from "./forms/LoginForm";
-import { useIntl } from "umi";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   loginFormId?: string;
@@ -12,6 +11,7 @@ interface Props {
 }
 const AuthTabs: React.FC<Props> = ({ loginFormId, signupFormId, onAuth, onForgotPwd }) => {
   const { t } = useTranslation();
+
   return (
     <Tabs size="large">
       <Tabs.TabPane key="signup" tab={t("who.signup")}>

@@ -1,16 +1,11 @@
 import React, { useEffect } from "react";
-import { Typography, Row, Col, Card } from "antd";
-import { Link } from "rakkasjs";
-import { useLazyQuery } from "@apollo/client";
-import { useResponsive } from "ahooks";
-import { getLangCode, getScreenSize } from "@/utils/utils";
+import { Typography, Row, Col, Card, Grid, Image } from "antd";
+import { Link, useSSQ } from "rakkasjs";
+import { getScreenSize } from "@/utils/utils";
 
-import _ from "lodash";
 import { HomeCatalogListConfig } from ".altrc";
-import AspectRatio from "./AspectRatio";
-import { homeBannerSectionQuery } from "@/queries/types/homeBannerSectionQuery";
-import { HOME_BANNER_SECTION_QUERY } from "@/queries/homeBannerSection";
 import config from "@/config";
+import { getSdk } from "@adapters/saleor/generated/graphql";
 
 const HomeCatalogListSection: React.FC<HomeCatalogListConfig> = ({
   menuName,
@@ -22,44 +17,41 @@ const HomeCatalogListSection: React.FC<HomeCatalogListConfig> = ({
   useMenuNameAsTitle,
   googleAnalyticsPromoData,
 }) => {
-  const [fetchMenu, { loading: fetching, error, data }] = useLazyQuery<homeBannerSectionQuery>(
-    HOME_BANNER_SECTION_QUERY,
-    {
-      variables: { menuName, lang: getLangCode() },
+  const { data } = useSSQ(async (ctx) => {
+    if (menuName) {
+      const client = new GraphQLClient(config.apiEndpoint, { fetch: ctx.fetch });
+      const sdk = getSdk(client);
+      const res = await sdk.homeBannerSectionQuery({ menuName, lang: "EN" });
+      return res;
     }
-  );
+  });
 
-  const responsive: any = useResponsive();
+  const responsive = Grid.useBreakpoint();
   const screenSize = getScreenSize(responsive);
 
-  useEffect(() => {
-    if (menuName) {
-      fetchMenu();
-    }
-  }, []);
-
   // Google Ecommerce - track promo view
-  useEffect(() => {
-    if (config.gtmEnabled && googleAnalyticsPromoData) {
-      window.dataLayer.push({
-        event: "view_promotion",
-        ecommerce: {
-          ...googleAnalyticsPromoData,
-        },
-      });
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (config.gtmEnabled && googleAnalyticsPromoData) {
+  //     window.dataLayer.push({
+  //       event: "view_promotion",
+  //       ecommerce: {
+  //         ...googleAnalyticsPromoData,
+  //       },
+  //     });
+  //   }
+  // }, []);
+
   // Google Ecommerce - track promo click
-  const trackPromoClick = () => {
-    if (config.gtmEnabled && googleAnalyticsPromoData) {
-      window.dataLayer.push({
-        event: "select_promotion",
-        ecommerce: {
-          ...googleAnalyticsPromoData,
-        },
-      });
-    }
-  };
+  // const trackPromoClick = () => {
+  //   if (config.gtmEnabled && googleAnalyticsPromoData) {
+  //     window.dataLayer.push({
+  //       event: "select_promotion",
+  //       ecommerce: {
+  //         ...googleAnalyticsPromoData,
+  //       },
+  //     });
+  //   }
+  // };
 
   if (!menuName) {
     // improperly configured section
@@ -84,7 +76,7 @@ const HomeCatalogListSection: React.FC<HomeCatalogListConfig> = ({
     url: item?.collection ? `/collections/${item.collection.id}` : `/categories/${item?.category?.id}`,
   }));
 
-  if (!fetching && (!collections || collections.length === 0)) {
+  if (!collections?.length) {
     // empty menu
     return null;
   }
@@ -106,19 +98,22 @@ const HomeCatalogListSection: React.FC<HomeCatalogListConfig> = ({
           }}
         >
           {collections?.map((item) => (
-            <Link key={item.id} to={item.url} onClick={trackPromoClick}>
+            <Link
+              key={item.id}
+              href={item.url}
+              //  onClick={trackPromoClick}
+            >
               <Card
                 hoverable
                 className="w-full"
                 cover={
-                  <AspectRatio height={1} width={1}>
-                    <img
-                      className="w-full h-full object-cover"
-                      src={item.backgroundImage.url}
-                      alt={item.backgroundImage.alt}
-                      loading="lazy"
-                    />
-                  </AspectRatio>
+                  <Image
+                    preview={false}
+                    className="w-full h-full aspect-square object-cover"
+                    src={item.backgroundImage?.url}
+                    alt={item.backgroundImage?.alt || ""}
+                    loading="lazy"
+                  />
                 }
               >
                 {showNames && <Card.Meta title={item.name} />}

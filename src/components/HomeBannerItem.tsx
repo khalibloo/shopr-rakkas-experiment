@@ -1,33 +1,35 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Typography, Row, Col } from "antd";
 import { Link } from "rakkasjs";
 
 import { HomeBannerImage } from ".altrc";
-import config from "@/config";
+// import config from "@/config";
 
 const HomeBannerItem: React.FC<HomeBannerImage> = ({ imageUrl, linkUrl, alt, title, googleAnalyticsPromoData }) => {
   // Google Ecommerce - track promo view
-  useEffect(() => {
-    if (config.gtmEnabled && googleAnalyticsPromoData) {
-      window.dataLayer.push({
-        event: "view_promotion",
-        ecommerce: {
-          ...googleAnalyticsPromoData,
-        },
-      });
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (config.gtmEnabled && googleAnalyticsPromoData) {
+  //     window.dataLayer.push({
+  //       event: "view_promotion",
+  //       ecommerce: {
+  //         ...googleAnalyticsPromoData,
+  //       },
+  //     });
+  //   }
+  // }, []);
+
   // Google Ecommerce - track promo click
-  const trackPromoClick = () => {
-    if (config.gtmEnabled && googleAnalyticsPromoData) {
-      window.dataLayer.push({
-        event: "select_promotion",
-        ecommerce: {
-          ...googleAnalyticsPromoData,
-        },
-      });
-    }
-  };
+  // const trackPromoClick = () => {
+  //   if (config.gtmEnabled && googleAnalyticsPromoData) {
+  //     window.dataLayer.push({
+  //       event: "select_promotion",
+  //       ecommerce: {
+  //         ...googleAnalyticsPromoData,
+  //       },
+  //     });
+  //   }
+  // };
+
   const content = (
     <div className="h-full relative">
       <img className="w-full h-full object-cover" src={imageUrl} alt={alt} loading="lazy" />
@@ -47,15 +49,25 @@ const HomeBannerItem: React.FC<HomeBannerImage> = ({ imageUrl, linkUrl, alt, tit
       )}
     </div>
   );
+
   if (linkUrl?.startsWith("/")) {
     return (
-      <Link to={linkUrl} onClick={trackPromoClick}>
+      <Link
+        href={linkUrl}
+        // onClick={trackPromoClick}
+      >
         {content}
       </Link>
     );
   }
+
   return (
-    <a href={linkUrl} onClick={trackPromoClick} target="_blank" rel="noreferrer noopener">
+    <a
+      href={linkUrl}
+      // onClick={trackPromoClick}
+      target="_blank"
+      rel="noreferrer noopener"
+    >
       {content}
     </a>
   );

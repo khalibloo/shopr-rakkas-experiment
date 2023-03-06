@@ -1,24 +1,21 @@
-import React from "react";
-import _ from "lodash";
-import { Helmet } from "react-helmet";
+import { Head, PageProps } from "rakkasjs";
 
 import HomeBannerSection from "@/components/HomeBannerSection";
 import HomeProductListSection from "@/components/HomeProductListSection";
 import HomeSignupSection from "@/components/HomeSignupSection";
-import VSpacing from "@/components/VSpacing";
 import config from "@/config";
 import HomeCatalogListSection from "@/components/HomeCatalogListSection";
 import HomeSplitBannerSection from "@/components/HomeSplitBannerSection";
-import { useIntl } from "umi";
+import { useTranslation } from "react-i18next";
+import VSpacing from "@/components/VSpacing";
 
-const HomePage = () => {
+const HomePage: React.FC<PageProps> = () => {
   const { t } = useTranslation();
   const homeLayout = config.altConfig.homeLayout;
+
   return (
     <div>
-      <Helmet>
-        <meta name="description" content={t("site.meta")} />
-      </Helmet>
+      <Head title={t("site.title")} meta={[{ name: "description", content: t("site.meta") }]} />
       {homeLayout.map((section, i) => {
         if (section.type === "banner") {
           return <HomeBannerSection key={i} {...section} />;
@@ -38,5 +35,4 @@ const HomePage = () => {
   );
 };
 
-HomePage.title = "site.title";
 export default HomePage;

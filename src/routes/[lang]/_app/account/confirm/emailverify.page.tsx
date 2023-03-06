@@ -1,19 +1,17 @@
 import React, { useEffect } from "react";
-import { useIntl, useLocation, history, connect, ConnectRC, Link } from "umi";
 import { Button, message, notification, Result } from "antd";
-import { ConnectState } from "@/models/connect";
-import VSpacing from "@/components/VSpacing";
+import { useTranslation } from "react-i18next";
+import { Head, Link, navigate, useLocation } from "rakkasjs";
 import Loader from "@/components/Loader";
-import { APIException } from "@/apollo";
 
-interface Props {
-  authenticated: boolean;
-}
-const EmailVerifyPage: React.FC<Props> = ({ authenticated, dispatch }) => {
+const EmailVerifyPage: React.FC = () => {
   const { t } = useTranslation();
-  const location = useLocation();
-  const query = location.query || {};
-  const { email, token } = query;
+  const {
+    current: { searchParams },
+  } = useLocation();
+  const email = searchParams.get("email");
+  const token = searchParams.get("token");
+  const dispatch = (x) => x;
   useEffect(() => {
     if (email && token) {
       dispatch?.({
@@ -26,9 +24,9 @@ const EmailVerifyPage: React.FC<Props> = ({ authenticated, dispatch }) => {
               message: t("who.emailVerify.success"),
               description: t("who.emailVerify.success.desc"),
             });
-            history.push("/");
+            navigate("/");
           },
-          onError: (err: APIException) => {
+          onError: (err) => {
             // check if token expired or is invalid
             message.error(t("misc.error.generic"));
           },
@@ -39,31 +37,23 @@ const EmailVerifyPage: React.FC<Props> = ({ authenticated, dispatch }) => {
 
   if (!token || !email) {
     return (
-      <>
-        <VSpacing height={24} />
+      <div className="pt-6 pb-12">
+        <Head title={t("account.emailverify.title")} />
         <Result
           status="error"
           extra={[
-            <Link to="/">
-              <Button type="primary" key="0">
-                {t("misc.backToHome")}
-              </Button>
+            <Link href="/" key="0">
+              <Button type="primary">{t("misc.backToHome")}</Button>
             </Link>,
           ]}
           title={t("account.confirm.invalidUrl")}
           subTitle={t("account.confirm.invalidUrl.desc")}
         />
-        <VSpacing height={48} />
-      </>
+      </div>
     );
   }
 
   return <Loader />;
 };
 
-const ConnectedPage = connect((state: ConnectState) => ({
-  authenticated: state.auth.authenticated,
-}))(EmailVerifyPage);
-ConnectedPage.title = "account.emailverify.title";
-
-export default ConnectedPage;
+export default EmailVerifyPage;
