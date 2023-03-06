@@ -1,9 +1,7 @@
 import * as React from "react";
 import { Link } from "rakkasjs";
-import { Card, Typography, Skeleton } from "antd";
-import AspectRatio from "./AspectRatio";
+import { Card, Typography, Image } from "antd";
 import { formatPrice, getCategoryName, getProductName } from "@/utils/utils";
-import SkeletonDiv from "./SkeletonDiv";
 import type { BasicProductFragment } from "@adapters/saleor/generated/graphql";
 // import config from "@/config";
 
@@ -25,7 +23,6 @@ const ProductCard: React.FC<Props> = ({
   // listName,
   // listID,
   // listIndex,
-  loading,
   onClick,
 }) => {
   const currency = product?.pricing?.priceRange?.start?.gross.currency as string;
@@ -61,51 +58,6 @@ const ProductCard: React.FC<Props> = ({
   //   });
   // };
 
-  const card = (
-    <Card
-      className={className}
-      id={id}
-      hoverable
-      cover={
-        <AspectRatio width={1} height={1}>
-          <SkeletonDiv active loading={loading}>
-            <img
-              className="w-full"
-              alt={product?.thumbnail?.alt as string}
-              src={product?.thumbnail?.url}
-              loading="lazy"
-            />
-          </SkeletonDiv>
-        </AspectRatio>
-      }
-    >
-      <Card.Meta
-        title={
-          <Skeleton active loading={loading} avatar={false} paragraph={{ rows: 1, width: "100%" }} title={false}>
-            <Typography.Text>{getProductName(product)}</Typography.Text>
-          </Skeleton>
-        }
-        description={
-          <Skeleton active loading={loading} avatar={false} paragraph={{ rows: 1, width: "70%" }} title={false}>
-            <Typography.Text type="secondary">{getCategoryName(product?.category)}</Typography.Text>
-          </Skeleton>
-        }
-      />
-      <Skeleton active loading={loading} avatar={false} paragraph={{ rows: 1, width: "30%" }} title={false}>
-        {isOnSale && (
-          <span>
-            <Typography.Text className="text-xs line-through" type="secondary">
-              {formatPrice(currency, minUndiscountedPrice, maxUndiscountedPrice)}
-            </Typography.Text>{" "}
-          </span>
-        )}
-        <Typography.Text strong>{formatPrice(currency, minPrice, maxPrice)}</Typography.Text>
-      </Skeleton>
-    </Card>
-  );
-  if (loading) {
-    return card;
-  }
   return (
     <Link
       href={`/products/${product?.slug}`}
@@ -114,7 +66,33 @@ const ProductCard: React.FC<Props> = ({
         onClick?.();
       }}
     >
-      {card}
+      <Card
+        className={className}
+        id={id}
+        hoverable
+        cover={
+          <Image
+            preview={false}
+            className="w-full aspect-square"
+            alt={product?.thumbnail?.alt || ""}
+            src={product?.thumbnail?.url}
+            loading="lazy"
+          />
+        }
+      >
+        <Card.Meta
+          title={<Typography.Text>{getProductName(product)}</Typography.Text>}
+          description={<Typography.Text type="secondary">{getCategoryName(product?.category)}</Typography.Text>}
+        />
+        {isOnSale && (
+          <span>
+            <Typography.Text className="text-xs line-through" type="secondary">
+              {formatPrice(currency, minUndiscountedPrice, maxUndiscountedPrice)}
+            </Typography.Text>{" "}
+          </span>
+        )}
+        <Typography.Text strong>{formatPrice(currency, minPrice, maxPrice)}</Typography.Text>
+      </Card>
     </Link>
   );
 };

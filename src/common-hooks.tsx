@@ -2,6 +2,8 @@ import { ConfigProvider } from "antd";
 import type { CommonHooks } from "rakkasjs";
 import { configResponsive } from "ahooks";
 
+import "antd/dist/reset.css";
+import "@/styles/global.css";
 import "./i18n";
 
 configResponsive({

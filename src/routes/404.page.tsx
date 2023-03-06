@@ -1,13 +1,12 @@
-import React from "react";
 import { Button, Col, Result, Row } from "antd";
-import { Link, useIntl } from "umi";
-import VSpacing from "@/components/VSpacing";
+import { useTranslation } from "react-i18next";
+import { Link } from "rakkasjs";
 
 const NotFoundPage = () => {
   const { t } = useTranslation();
+
   return (
-    <div>
-      <VSpacing height={24} />
+    <div className="pt-6 pb-12">
       <Row justify="center" align="middle" className="h-full">
         <Col span={22} md={20} xl={18}>
           <Result
@@ -15,7 +14,7 @@ const NotFoundPage = () => {
             title="404"
             subTitle={t("404.subheading")}
             extra={
-              <Link to="/">
+              <Link href="/">
                 <Button size="large" type="primary">
                   {t("misc.backToHome")}
                 </Button>
@@ -24,7 +23,6 @@ const NotFoundPage = () => {
           />
         </Col>
       </Row>
-      <VSpacing height={48} />
     </div>
   );
 };

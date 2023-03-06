@@ -1,17 +1,14 @@
-import * as React from "react";
 import { BasicProductFragment } from "@adapters/saleor/generated/graphql";
 import { Link } from "rakkasjs";
-import { Card, Typography, Row, Col } from "antd";
-import AspectRatio from "./AspectRatio";
+import { Card, Typography, Row, Col, Image } from "antd";
 import { formatPrice, getProductName } from "@/utils/utils";
 
 interface Props {
   id?: string;
-  className?: string;
   product: BasicProductFragment;
 }
 
-const ProductListItem: React.FunctionComponent<Props> = ({ product, id, className }) => {
+const ProductListItem: React.FunctionComponent<Props> = ({ product, id }) => {
   const currency = product.pricing?.priceRange?.start?.gross.currency as string;
   const minPrice = product.pricing?.priceRange?.start?.gross.amount as number;
   const maxPrice = product.pricing?.priceRange?.stop?.gross.amount as number;
@@ -20,18 +17,17 @@ const ProductListItem: React.FunctionComponent<Props> = ({ product, id, classNam
   const isOnSale = product?.pricing?.onSale;
 
   return (
-    <Card className={className} id={id}>
+    <Card className="w-full" id={id}>
       <Row gutter={24}>
         <Col xs={8} sm={6} lg={4}>
           <Link href={`/products/${product.slug}`}>
-            <AspectRatio width={1} height={1}>
-              <img
-                className="w-full"
-                alt={product.thumbnail?.alt as string}
-                src={product.thumbnail?.url}
-                loading="lazy"
-              />
-            </AspectRatio>
+            <Image
+              preview={false}
+              className="w-full aspect-square"
+              alt={product.thumbnail?.alt || ""}
+              src={product.thumbnail?.url}
+              loading="lazy"
+            />
           </Link>
         </Col>
         <Col xs={16} sm={18} lg={20}>

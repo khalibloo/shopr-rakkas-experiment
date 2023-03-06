@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Typography, Row, Col, List, Drawer, Collapse, Tree, Checkbox, Select, Slider, Input, Grid } from "antd";
+import React from "react";
+import { Typography, Row, Col, List, Drawer, Collapse, Tree, Checkbox, Select, Slider, Input, Grid, Form } from "antd";
 import { useBoolean } from "ahooks";
 
 import VSpacing from "@/components/VSpacing";
@@ -202,14 +202,14 @@ const Products: React.FC<Props> = ({
     catChildren.edges.map((catEdge) => ({
       title: getCategoryName(catEdge.node),
       key: catEdge.node.id,
-      children: mapCatTree(catEdge.node.children),
+      children: catEdge.node.children ? mapCatTree(catEdge.node.children) : undefined,
     }));
 
   const categoryTreeData = (categoryID ? catSubtreeData?.category?.children : catTreeData?.categories)?.edges.map(
     (catEdge) => ({
       title: getCategoryName(catEdge.node),
       key: catEdge.node.id,
-      children: mapCatTree(catEdge.node.children),
+      children: catEdge.node.children ? mapCatTree(catEdge.node.children) : undefined,
     })
   );
 
@@ -291,65 +291,68 @@ const Products: React.FC<Props> = ({
           </Collapse.Panel>
         )}
         <Collapse.Panel id="attrs-panel" header="Attributes" key="attributes">
-          {productsData?.attributes?.edges.map((attrEdge) => {
-            const attr = attrEdge.node;
-            return (
-              <div key={attr.id}>
-                <label className="attrs-labels">{getAttributeName(attr)}</label>
-                <Select
-                  id={`attr-select-${attr.slug}`}
-                  allowClear
-                  autoClearSearchValue
-                  className="w-full"
-                  mode="multiple"
-                  showArrow
-                  onChange={(values) => {
-                    const newAttrs = [...attributes];
-                    const entry = {
-                      slug: attr.slug as string,
-                      values: values as string[],
-                    };
-                    const index = newAttrs.findIndex((a) => a.slug === attr.slug);
-                    if (index === -1) {
-                      newAttrs.push(entry);
-                    } else {
-                      if (values.length > 0) {
-                        newAttrs[index] = entry;
-                      } else {
-                        _.remove(newAttrs, (a) => a.slug === attr.slug);
-                      }
-                    }
-                    navigate(
-                      `${pathname}?${{
-                        ...query,
-                        attrs: JSON.stringify(newAttrs),
-                      }}`
-                    );
-                  }}
-                >
-                  {attr.choices?.edges.map((val) => {
-                    if (!val) {
-                      return null;
-                    }
-                    return (
-                      <Select.Option
-                        id={`attrs-${attr.slug}-${val.node.slug}`}
-                        key={val.node.id}
-                        value={val.node.slug as string}
-                      >
-                        {getAttributeValueName(val)}
-                      </Select.Option>
-                    );
-                  })}
-                </Select>
-                <VSpacing height={16} />
-              </div>
-            );
-          })}
+          <Form layout="vertical">
+            {productsData?.attributes?.edges.map((attrEdge) => {
+              const attr = attrEdge.node;
+              return (
+                <div key={attr.id}>
+                  <Form.Item label={getAttributeName(attr)}>
+                    <Select
+                      id={`attr-select-${attr.slug}`}
+                      allowClear
+                      autoClearSearchValue
+                      className="w-full"
+                      mode="multiple"
+                      showArrow
+                      onChange={(values) => {
+                        const newAttrs = [...attributes];
+                        const entry = {
+                          slug: attr.slug as string,
+                          values: values as string[],
+                        };
+                        const index = newAttrs.findIndex((a) => a.slug === attr.slug);
+                        if (index === -1) {
+                          newAttrs.push(entry);
+                        } else {
+                          if (values.length > 0) {
+                            newAttrs[index] = entry;
+                          } else {
+                            _.remove(newAttrs, (a) => a.slug === attr.slug);
+                          }
+                        }
+                        navigate(
+                          `${pathname}?${{
+                            ...query,
+                            attrs: JSON.stringify(newAttrs),
+                          }}`
+                        );
+                      }}
+                    >
+                      {attr.choices?.edges.map((val) => {
+                        if (!val) {
+                          return null;
+                        }
+                        return (
+                          <Select.Option
+                            id={`attrs-${attr.slug}-${val.node.slug}`}
+                            key={val.node.id}
+                            value={val.node.slug as string}
+                          >
+                            {getAttributeValueName(val)}
+                          </Select.Option>
+                        );
+                      })}
+                    </Select>
+                  </Form.Item>
+                </div>
+              );
+            })}
+          </Form>
         </Collapse.Panel>
       </Collapse>
     </>
   );
+
   return (
     <>
       <Drawer
@@ -417,7 +420,7 @@ const Products: React.FC<Props> = ({
                             </Col>
                           </Row>
                         ) : (
-                          <ProductListItem className="product-list-cards" product={product} />
+                          <ProductListItem product={product} />
                         )}
                       </div>
                     </List.Item>
