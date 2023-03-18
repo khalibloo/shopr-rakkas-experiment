@@ -4,7 +4,7 @@ import { configResponsive } from "ahooks";
 
 import "antd/dist/reset.css";
 import "@/styles/global.css";
-import "./i18n";
+import i18nInit from "./i18n";
 
 configResponsive({
   xs: 0,
@@ -27,6 +27,7 @@ const hooks: CommonHooks = {
 
     if (lang === "en" || lang === "fr") {
       ctx.lang = lang;
+      i18nInit(lang);
       const newUrl = new URL(url);
       newUrl.pathname = url.pathname.slice(lang.length + 1);
       return { rewrite: newUrl };
@@ -46,6 +47,7 @@ const hooks: CommonHooks = {
           lang = "fr";
         }
       }
+      i18nInit(lang);
 
       const newUrl = new URL(url);
       newUrl.pathname = `/${lang}${newUrl.pathname}`;

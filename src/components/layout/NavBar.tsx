@@ -15,7 +15,7 @@ import AuthTabs from "@/components/AuthTabs";
 import GuestForm from "@/components/forms/GuestForm";
 import VSpacing from "@/components/VSpacing";
 import config from "@/config";
-import { Link } from "rakkasjs";
+import { Link, navigate, useLocation } from "rakkasjs";
 import { useTranslation } from "react-i18next";
 
 interface Props {
@@ -27,6 +27,7 @@ interface Props {
 
 const NavBar: React.FC<Props> = ({ authenticated, localCheckout, authModalOpen, guestCartModalOpen }) => {
   const { t } = useTranslation();
+  const location = useLocation();
   const [searchDrawerOpen, { setTrue: openSearchDrawer, setFalse: closeSearchDrawer }] = useBoolean(false);
   const [pwdResetModalOpen, { setTrue: openPwdResetModal, setFalse: closePwdResetModal }] = useBoolean(false);
   const [menuDrawerOpen, { setTrue: openMenuDrawer, setFalse: closeMenuDrawer }] = useBoolean(false);
@@ -60,12 +61,12 @@ const NavBar: React.FC<Props> = ({ authenticated, localCheckout, authModalOpen, 
   const langMenu = (
     <Menu
       onClick={(item) => {
-        // setLocale(item.key, false);
-        // window.location.reload();
+        const path = location.current.pathname.substring(3) || "/";
+        navigate(`/${item.key}${path}${location.current.search}`, { replace: true });
       }}
     >
-      <Menu.Item key="en-US">English</Menu.Item>
-      <Menu.Item key="fr-FR">Français</Menu.Item>
+      <Menu.Item key="en">English</Menu.Item>
+      <Menu.Item key="fr">Français</Menu.Item>
     </Menu>
   );
 
