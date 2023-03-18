@@ -30,7 +30,7 @@ const hooks: CommonHooks = {
       const newUrl = new URL(url);
       newUrl.pathname = url.pathname.slice(lang.length + 1);
       return { rewrite: newUrl };
-    } else if (url.pathname === "/") {
+    } else {
       let lang = "en"; // Default language
 
       if (import.meta.env.SSR) {
@@ -48,12 +48,10 @@ const hooks: CommonHooks = {
       }
 
       const newUrl = new URL(url);
-      newUrl.pathname = `/${lang}`;
+      newUrl.pathname = `/${lang}${newUrl.pathname}`;
 
       return { redirect: newUrl };
     }
-
-    return true;
   },
   wrapApp: (app) => (
     <ConfigProvider theme={{ components: { Layout: { colorBgHeader: "#fff" } } }}>{app}</ConfigProvider>

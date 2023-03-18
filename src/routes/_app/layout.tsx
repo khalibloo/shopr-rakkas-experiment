@@ -1,4 +1,4 @@
-import { Head, Link, Layout as RakkasLayout } from "rakkasjs";
+import { Head, Link, Layout as RakkasLayout, usePageContext } from "rakkasjs";
 import { Affix, Button, Col, Layout, Row, Space, Typography } from "antd";
 // import lf from "localforage";
 import { useBoolean } from "ahooks";
@@ -10,7 +10,8 @@ import Footer from "@/components/layout/Footer";
 // import config from "@/config";
 
 const AppLayout: RakkasLayout = ({ children }) => {
-  const { t, i18n } = useTranslation();
+  const { lang } = usePageContext();
+  const { t } = useTranslation();
   const [
     cookieDrawerOpen,
     // { setTrue: openCookieDrawer, setFalse: closeCookieDrawer }
@@ -37,7 +38,7 @@ const AppLayout: RakkasLayout = ({ children }) => {
 
   return (
     <>
-      <Head htmlAttributes={{ lang: i18n.language }} />
+      <Head htmlAttributes={{ lang }} />
       <Layout className="min-h-full">
         <Layout.Header className={clsx("w-full p-0 fixed z-10 shadow-md")}>
           <NavBar />
