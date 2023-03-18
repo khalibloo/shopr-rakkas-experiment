@@ -74,7 +74,7 @@ const HomeCatalogListSection: React.FC<HomeCatalogListConfig> = ({
   };
   const collections = items?.slice(0, Math.min(items.length, rows[screenSize] * rowSizes[screenSize])).map((item) => ({
     ...(item?.collection || item?.category),
-    url: item?.collection ? `/collections/${item.collection.id}` : `/categories/${item?.category?.id}`,
+    url: item?.collection ? `/collections/${item.collection.slug}` : `/categories/${item?.category?.slug}`,
   }));
 
   if (!collections?.length) {

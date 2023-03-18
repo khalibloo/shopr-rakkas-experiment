@@ -11,7 +11,7 @@ const list: Country[] = codes.map((code) => ({
 }));
 
 list.sort((a, b) =>
-  new Intl.Collator(navigator.language.substr(0, 2), {
+  new Intl.Collator(navigator.language.substring(0, 2), {
     sensitivity: "base",
   }).compare(a.name, b.name)
 );
