@@ -24,7 +24,7 @@ const ProfilePage: React.FC<PageProps> = () => {
 
   return (
     <div className="pt-6 pb-12">
-      <Head title={t("profile.title")} />
+      <Head title={t("profile.title") as string} />
       <Modal
         destroyOnClose
         okText={t("misc.saveChanges")}

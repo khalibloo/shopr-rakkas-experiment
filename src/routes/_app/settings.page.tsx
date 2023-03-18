@@ -24,7 +24,7 @@ const SettingsPage = () => {
 
   return (
     <div className="pt-6 pb-12">
-      <Head title={t("settings.title")} />
+      <Head title={t("settings.title") as string} />
       <Modal
         destroyOnClose
         okText={t("misc.saveChanges")}

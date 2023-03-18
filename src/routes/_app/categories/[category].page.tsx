@@ -1,10 +1,10 @@
 import { Typography, Row, Col } from "antd";
+import { Head, PageProps, usePageContext, useSSQ } from "rakkasjs";
+import { GraphQLClient } from "graphql-request";
 
 import VSpacing from "@/components/VSpacing";
 import { formatTitle, getCategoryName, getCategorySeoDesc } from "@/utils/utils";
-import { Head, PageProps, useQuery, useSSQ } from "rakkasjs";
 import config from "@/config";
-import { GraphQLClient } from "graphql-request";
 import { getSdk } from "@adapters/saleor/generated/graphql";
 import Products from "@/components/Products";
 
@@ -14,7 +14,8 @@ interface Params {
 }
 
 const CategoryDetailPage: React.FC<PageProps<Params>> = ({ params }) => {
-  const { category: categorySlug, lang } = params;
+  const { lang } = usePageContext();
+  const { category: categorySlug } = params;
   // const qKey = JSON.stringify(["category", { id: categorySlug, lang }]);
   const { data } = useSSQ(async (ctx) => {
     const client = new GraphQLClient(config.apiEndpoint, { fetch: ctx.fetch });
@@ -55,8 +56,7 @@ const CategoryDetailPage: React.FC<PageProps<Params>> = ({ params }) => {
         categoryID={data?.category?.id}
         showCollectionFilter
         showCategoryFilter
-        listName={data?.category?.name}
-        lang={lang}
+        listName={data.category!.name}
       />
       <VSpacing height={48} />
     </div>

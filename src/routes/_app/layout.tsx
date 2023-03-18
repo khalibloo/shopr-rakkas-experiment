@@ -1,17 +1,20 @@
 import { Head, Link, Layout as RakkasLayout } from "rakkasjs";
 import { Affix, Button, Col, Layout, Row, Space, Typography } from "antd";
 // import lf from "localforage";
-import { useBoolean, useCookieState } from "ahooks";
+import { useBoolean } from "ahooks";
+import { useTranslation } from "react-i18next";
 import { clsx } from "clsx";
 
 import NavBar from "@/components/layout/NavBar";
 import Footer from "@/components/layout/Footer";
-import { useTranslation } from "react-i18next";
 // import config from "@/config";
 
-const AppLayout: RakkasLayout = ({ children, params }) => {
+const AppLayout: RakkasLayout = ({ children }) => {
   const { t, i18n } = useTranslation();
-  const [cookieDrawerOpen, { setTrue: openCookieDrawer, setFalse: closeCookieDrawer }] = useBoolean();
+  const [
+    cookieDrawerOpen,
+    // { setTrue: openCookieDrawer, setFalse: closeCookieDrawer }
+  ] = useBoolean();
   // const [acceptedCookies, setAcceptedCookies] = useCookieState('accepted-cookie-notice');
 
   // useEffect(() => {

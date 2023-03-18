@@ -1,30 +1,32 @@
 import React, { useEffect } from "react";
 import { Button, message, notification, Result } from "antd";
-import Loader from "@/components/Loader";
-import { Head, Link, navigate, useLocation } from "rakkasjs";
 import { useTranslation } from "react-i18next";
+import { Head, Link, navigate, useLocation } from "rakkasjs";
+import Loader from "@/components/Loader";
 
-const EmailChangePage: React.FC = () => {
+const EmailVerifyPage: React.FC = () => {
   const { t } = useTranslation();
   const {
     current: { searchParams },
   } = useLocation();
+  const email = searchParams.get("email");
   const token = searchParams.get("token");
   const dispatch = (x) => x;
   useEffect(() => {
-    if (token) {
+    if (email && token) {
       dispatch?.({
-        type: "auth/confirmEmailChange",
+        type: "auth/verifyEmail",
         payload: {
+          email,
           token,
           onCompleted: () => {
             notification.success({
-              message: t("who.emailchange.success"),
-              description: t("who.emailchange.success.desc"),
+              message: t("who.emailVerify.success"),
+              description: t("who.emailVerify.success.desc"),
             });
-            navigate("/profile");
+            navigate("/");
           },
-          onError: (err) => {
+          onError: () => {
             // check if token expired or is invalid
             message.error(t("misc.error.generic"));
           },
@@ -33,10 +35,10 @@ const EmailChangePage: React.FC = () => {
     }
   }, []);
 
-  if (!token) {
+  if (!token || !email) {
     return (
       <div className="pt-6 pb-12">
-        <Head title={t("account.emailchange.title")} />
+        <Head title={t("account.emailverify.title") as string} />
         <Result
           status="error"
           extra={[
@@ -54,4 +56,4 @@ const EmailChangePage: React.FC = () => {
   return <Loader />;
 };
 
-export default EmailChangePage;
+export default EmailVerifyPage;

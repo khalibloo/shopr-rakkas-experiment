@@ -1,21 +1,19 @@
 import React, { useEffect } from "react";
-import { Typography, Row, Col, List } from "antd";
-import { Link } from "rakkasjs";
-import { useLazyQuery } from "@apollo/client";
+import { Typography, Row, Col, List, Grid } from "antd";
+import { Link, useSSQ } from "rakkasjs";
 import { useResponsive } from "ahooks";
-import { getCategoryName, getCollectionName, getLangCode, getScreenSize } from "@/utils/utils";
+import { getCategoryName, getCollectionName, getScreenSize } from "@/utils/utils";
 
 import _ from "lodash";
 import { HomeProductListConfig } from ".altrc";
-import {
-  featuredCategoryProducts,
-  featuredCategoryProducts_category_products_edges,
-} from "@/queries/types/featuredCategoryProducts";
-import { featuredCollectionProducts } from "@/queries/types/featuredCollectionProducts";
-import { FEATURED_CATEGORY_PRODUCTS_QUERY } from "@/queries/featuredCategoryProducts";
-import { FEATURED_COLLECTION_PRODUCTS_QUERY } from "@/queries/featuredCollectionProducts";
 import ProductCard from "./ProductCard";
 import config from "@/config";
+import { GraphQLClient } from "graphql-request";
+import {
+  FeaturedCategoryProductsQuery,
+  FeaturedCollectionProductsQuery,
+  getSdk,
+} from "@adapters/saleor/generated/graphql";
 
 const HomeProductListSection: React.FC<HomeProductListConfig> = ({
   categorySlug,
@@ -25,57 +23,57 @@ const HomeProductListSection: React.FC<HomeProductListConfig> = ({
   showTitle,
   shuffle,
   title,
-  googleAnalyticsPromoData,
+  // googleAnalyticsPromoData,
 }) => {
-  const [fetchCategory, { loading: catFetching, error: catError, data: catData }] =
-    useLazyQuery<featuredCategoryProducts>(FEATURED_CATEGORY_PRODUCTS_QUERY, {
-      variables: {
-        lang: getLangCode(),
+  const {
+    data: { catData, collData },
+  } = useSSQ(async (ctx) => {
+    const client = new GraphQLClient(config.apiEndpoint, { fetch: ctx.fetch });
+    const sdk = getSdk(client);
+    const res: { catData?: FeaturedCategoryProductsQuery; collData?: FeaturedCollectionProductsQuery } = {};
+    if (categorySlug) {
+      res.catData = await sdk.featuredCategoryProducts({
+        lang: "EN" as any,
         slug: categorySlug,
         first: firstNProducts,
-      },
-    });
-  const [fetchCollection, { loading: collFetching, error: collError, data: collData }] =
-    useLazyQuery<featuredCollectionProducts>(FEATURED_COLLECTION_PRODUCTS_QUERY, {
-      variables: {
+      });
+    }
+    if (collectionSlug) {
+      res.collData = await sdk.featuredCollectionProducts({
+        lang: "EN" as any,
         slug: collectionSlug,
         first: firstNProducts,
-        lang: getLangCode(),
-      },
-    });
-  const responsive: any = useResponsive();
+      });
+    }
+    return res;
+  });
+
+  const responsive = Grid.useBreakpoint();
   const screenSize = getScreenSize(responsive);
 
-  useEffect(() => {
-    if (categorySlug) {
-      fetchCategory();
-    } else if (collectionSlug) {
-      fetchCollection();
-    }
-  }, []);
-
   // Google Ecommerce - track promo view
-  useEffect(() => {
-    if (config.gtmEnabled && googleAnalyticsPromoData) {
-      window.dataLayer.push({
-        event: "view_promotion",
-        ecommerce: {
-          ...googleAnalyticsPromoData,
-        },
-      });
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (config.gtmEnabled && googleAnalyticsPromoData) {
+  //     window.dataLayer.push({
+  //       event: "view_promotion",
+  //       ecommerce: {
+  //         ...googleAnalyticsPromoData,
+  //       },
+  //     });
+  //   }
+  // }, []);
+
   // Google Ecommerce - track promo click
-  const trackPromoClick = () => {
-    if (config.gtmEnabled && googleAnalyticsPromoData) {
-      window.dataLayer.push({
-        event: "select_promotion",
-        ecommerce: {
-          ...googleAnalyticsPromoData,
-        },
-      });
-    }
-  };
+  // const trackPromoClick = () => {
+  //   if (config.gtmEnabled && googleAnalyticsPromoData) {
+  //     window.dataLayer.push({
+  //       event: "select_promotion",
+  //       ecommerce: {
+  //         ...googleAnalyticsPromoData,
+  //       },
+  //     });
+  //   }
+  // };
 
   if (!categorySlug && !collectionSlug) {
     // improperly configured section
@@ -112,7 +110,8 @@ const HomeProductListSection: React.FC<HomeProductListConfig> = ({
     }
     products = products.slice(0, Math.min(rows[screenSize] * rowSizes[screenSize], products.length));
   }
-  if (!catFetching && !collFetching && (!products || products.length === 0)) {
+
+  if (!products?.length) {
     // empty collection/category
     return null;
   }
@@ -121,7 +120,10 @@ const HomeProductListSection: React.FC<HomeProductListConfig> = ({
     <Row justify="center">
       <Col span={22} lg={20}>
         {showTitle && titleText && (
-          <Link to={titleUrl} onClick={trackPromoClick}>
+          <Link
+            href={titleUrl}
+            //  onClick={trackPromoClick}
+          >
             <Typography.Title className="text-center" level={1}>
               {titleText}
             </Typography.Title>
@@ -131,7 +133,6 @@ const HomeProductListSection: React.FC<HomeProductListConfig> = ({
           <List
             dataSource={products}
             grid={{ ...rowSizes, gutter: 24 }}
-            loading={catFetching || collFetching}
             renderItem={(edge, i) => {
               const product = edge.node;
               return (
@@ -144,7 +145,7 @@ const HomeProductListSection: React.FC<HomeProductListConfig> = ({
                           product={product}
                           listName="Featured Products"
                           listIndex={i}
-                          onClick={trackPromoClick}
+                          // onClick={trackPromoClick}
                         />
                       </Col>
                     </Row>

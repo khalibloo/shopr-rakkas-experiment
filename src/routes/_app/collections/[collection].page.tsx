@@ -1,19 +1,19 @@
 import React from "react";
 import { Typography, Row, Col } from "antd";
+import { Head, PageProps, usePageContext, useSSQ } from "rakkasjs";
+import { GraphQLClient } from "graphql-request";
 
 import { formatTitle, getCollectionName, getCollectionSeoDesc } from "@/utils/utils";
 import Products from "@/components/Products";
-import { Head, PageProps, useSSQ } from "rakkasjs";
 import config from "@/config";
-import { GraphQLClient } from "graphql-request";
 import { getSdk } from "@adapters/saleor/generated/graphql";
 
 interface Params {
   collection: string;
-  lang: string;
 }
 
-const CollectionDetailPage: React.FC<PageProps<Params>> = ({ params: { collection: collectionSlug, lang } }) => {
+const CollectionDetailPage: React.FC<PageProps<Params>> = ({ params: { collection: collectionSlug } }) => {
+  const { lang } = usePageContext();
   // const qKey = JSON.stringify(["category", { id: categorySlug, lang }]);
   const { data } = useSSQ(async (ctx) => {
     const client = new GraphQLClient(config.apiEndpoint, { fetch: ctx.fetch });
@@ -57,7 +57,7 @@ const CollectionDetailPage: React.FC<PageProps<Params>> = ({ params: { collectio
           </Row>
         )}
       </div>
-      <Products collectionID={data?.collection?.id} showCategoryFilter listName={data?.collection?.name} lang={lang} />
+      <Products collectionID={data?.collection?.id} showCategoryFilter listName={data.collection!.name} />
     </div>
   );
 };

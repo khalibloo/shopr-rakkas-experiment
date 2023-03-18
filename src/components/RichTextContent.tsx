@@ -1,34 +1,22 @@
-import React from "react";
-import { sanitize } from "dompurify";
-import draftToHtml from "draftjs-to-html";
-import Truncate from "react-truncate-html";
+import Blocks from "editorjs-blocks-react-renderer";
 
-interface IProps {
+import { parseEditorJSData } from "@/utils/utils";
+
+interface Props {
   contentJson: string;
-  lines?: number;
 }
 
-const RichTextContent: React.FC<IProps> = ({ contentJson, lines }) => {
-  if (!contentJson) {
+const RichTextContent: React.FC<Props> = ({ contentJson }) => {
+  const data = parseEditorJSData(contentJson);
+
+  if (!data) {
     return null;
   }
+
   return (
-    <>
-      {lines ? (
-        <Truncate
-          lines={lines}
-          dangerouslySetInnerHTML={{
-            __html: sanitize(draftToHtml(JSON.parse(contentJson))),
-          }}
-        />
-      ) : (
-        <div
-          dangerouslySetInnerHTML={{
-            __html: sanitize(draftToHtml(JSON.parse(contentJson))),
-          }}
-        />
-      )}
-    </>
+    <article>
+      <Blocks data={data} />
+    </article>
   );
 };
 

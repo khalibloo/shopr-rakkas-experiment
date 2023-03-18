@@ -30,16 +30,13 @@ import altConfig from "@/../.altrc";
 import VoucherCodeForm from "@/components/forms/VoucherCodeForm";
 import Logger from "@/utils/logger";
 import config from "@/config";
-import { Head, Link, navigate, PageProps, useSSQ } from "rakkasjs";
+import { Head, Link, navigate, PageProps, usePageContext, useSSQ } from "rakkasjs";
 import { useTranslation } from "react-i18next";
 import { GraphQLClient } from "graphql-request";
 import { getSdk } from "@adapters/saleor/generated/graphql";
 
-interface Params {
-  lang: string;
-}
-
-const CartPage: React.FC<PageProps<Params>> = ({ params: { lang } }) => {
+const CartPage: React.FC<PageProps> = () => {
+  const { lang } = usePageContext();
   const { t } = useTranslation();
   const dispatch = (x) => x;
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>();

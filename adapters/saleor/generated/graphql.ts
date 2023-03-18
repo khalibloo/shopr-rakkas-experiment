@@ -26797,7 +26797,7 @@ export const FeaturedCategoryProductsDocument = gql`
   query featuredCategoryProducts($lang: LanguageCodeEnum!, $slug: String!, $first: Int!) {
     category(slug: $slug) {
       ...BasicCategoryDetails
-      products(first: $first) {
+      products(first: $first, channel: "default-channel") {
         edges {
           node {
             ...BasicProduct

@@ -1,31 +1,32 @@
 import React, { useEffect } from "react";
+import { Button, message, notification, Result } from "antd";
 import Loader from "@/components/Loader";
-import { Button, notification, Result } from "antd";
-import { FrownOutlined } from "@ant-design/icons";
 import { Head, Link, navigate, useLocation } from "rakkasjs";
 import { useTranslation } from "react-i18next";
 
-const AccountDeactivatePage: React.FC = () => {
+const EmailChangePage: React.FC = () => {
   const { t } = useTranslation();
   const {
     current: { searchParams },
   } = useLocation();
   const token = searchParams.get("token");
-
   const dispatch = (x) => x;
   useEffect(() => {
     if (token) {
       dispatch?.({
-        type: "auth/confirmAccountDeactivation",
+        type: "auth/confirmEmailChange",
         payload: {
           token,
           onCompleted: () => {
-            notification.error({
-              message: t("account.deactivate.success"),
-              description: t("account.deactivate.success.desc"),
-              icon: <FrownOutlined />,
+            notification.success({
+              message: t("who.emailchange.success"),
+              description: t("who.emailchange.success.desc"),
             });
-            navigate("/");
+            navigate("/profile");
+          },
+          onError: () => {
+            // check if token expired or is invalid
+            message.error(t("misc.error.generic"));
           },
         },
       });
@@ -35,7 +36,7 @@ const AccountDeactivatePage: React.FC = () => {
   if (!token) {
     return (
       <div className="pt-6 pb-12">
-        <Head title={t("account.deactivate.title")} />
+        <Head title={t("account.emailchange.title") as string} />
         <Result
           status="error"
           extra={[
@@ -53,4 +54,4 @@ const AccountDeactivatePage: React.FC = () => {
   return <Loader />;
 };
 
-export default AccountDeactivatePage;
+export default EmailChangePage;

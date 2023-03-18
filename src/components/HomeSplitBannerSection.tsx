@@ -1,14 +1,12 @@
-import React, { useEffect } from "react";
-import { Row, Col } from "antd";
-import { useLazyQuery } from "@apollo/client";
-import { useResponsive } from "ahooks";
-import { getLangCode, getScreenSize } from "@/utils/utils";
+import { Row, Col, Grid } from "antd";
+import { getScreenSize } from "@/utils/utils";
 
-import SkeletonDiv from "@/components/SkeletonDiv";
 import { HomeSplitBannerConfig } from ".altrc";
-import { homeBannerSectionQuery } from "@/queries/types/homeBannerSectionQuery";
-import { HOME_BANNER_SECTION_QUERY } from "@/queries/homeBannerSection";
 import HomeBannerItem from "./HomeBannerItem";
+import { GraphQLClient } from "graphql-request";
+import { getSdk } from "@adapters/saleor/generated/graphql";
+import config from "@/config";
+import { useSSQ } from "rakkasjs";
 
 const HomeSplitBannerSection: React.FC<HomeSplitBannerConfig> = ({
   height,
@@ -18,21 +16,18 @@ const HomeSplitBannerSection: React.FC<HomeSplitBannerConfig> = ({
   menuName,
   showTitleOverlay,
 }) => {
-  const [fetchMenu, { loading: fetching, error, data }] = useLazyQuery<homeBannerSectionQuery>(
-    HOME_BANNER_SECTION_QUERY,
-    {
-      variables: { menuName, lang: getLangCode() },
+  const { data } = useSSQ(async (ctx) => {
+    if (menuName) {
+      const client = new GraphQLClient(config.apiEndpoint, { fetch: ctx.fetch });
+      const sdk = getSdk(client);
+      const res = await sdk.homeBannerSectionQuery({ menuName, lang: "EN" });
+      return res;
     }
-  );
-  const responsive: any = useResponsive();
+  });
+
+  const responsive = Grid.useBreakpoint();
   const screenSize = getScreenSize(responsive);
   const h = typeof height === "object" ? height[screenSize] : height;
-
-  useEffect(() => {
-    if (menuName) {
-      fetchMenu();
-    }
-  }, []);
 
   let items = images?.map((image, i) => ({ ...image, id: `${i}` })).slice(0, 2);
   if (menuName) {
@@ -51,7 +46,7 @@ const HomeSplitBannerSection: React.FC<HomeSplitBannerConfig> = ({
       })
       .filter((item) => item.imageUrl != null)
       .slice(0, 2);
-    if (!fetching && !items) {
+    if (!items) {
       // likely caused by invalid menu config
       return null;
     }
@@ -59,6 +54,7 @@ const HomeSplitBannerSection: React.FC<HomeSplitBannerConfig> = ({
     // menuName wasnt supplied and images is empty
     return null;
   }
+
   const calcSplit = (layout) => {
     if (layout === "1-2") {
       return { a: 8, b: 16 };
@@ -70,6 +66,7 @@ const HomeSplitBannerSection: React.FC<HomeSplitBannerConfig> = ({
       return { a: 16, b: 8 };
     }
   };
+
   const splitLayoutA =
     items?.length === 1
       ? { span: 24 }
@@ -81,6 +78,7 @@ const HomeSplitBannerSection: React.FC<HomeSplitBannerConfig> = ({
           xl: calcSplit(layout.xl)?.a,
           xxl: calcSplit(layout.xxl)?.a,
         };
+
   const splitLayoutB = {
     xs: 24,
     xm: 24,
@@ -89,22 +87,19 @@ const HomeSplitBannerSection: React.FC<HomeSplitBannerConfig> = ({
     xl: calcSplit(layout.xl)?.b,
     xxl: calcSplit(layout.xxl)?.b,
   };
+
   return (
     <Row justify="center">
-      <Col span={22} xs={22} md={20} className="overflow-hidden relative">
+      <Col xs={22} md={20} className="overflow-hidden relative">
         <Row gutter={[gap || 24, gap || 24]}>
           {items?.[0] && (
             <Col {...splitLayoutA} style={{ height: h || 500 }}>
-              <SkeletonDiv active loading={fetching}>
-                <HomeBannerItem {...items[0]} />
-              </SkeletonDiv>
+              <HomeBannerItem {...items[0]} />
             </Col>
           )}
           {items?.[1] && (
             <Col {...splitLayoutB} style={{ height: h || 500 }}>
-              <SkeletonDiv active loading={fetching}>
-                <HomeBannerItem {...items[1]} />
-              </SkeletonDiv>
+              <HomeBannerItem {...items[1]} />
             </Col>
           )}
         </Row>

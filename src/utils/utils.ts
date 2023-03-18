@@ -1,3 +1,4 @@
+import type { DataProp } from "editorjs-blocks-react-renderer";
 import config from "@/config";
 // import { AddressDetails } from "@/fragments/types/AddressDetails";
 // import { AddressInput, CountryCode } from "@/globalTypes";
@@ -74,6 +75,39 @@ export const formatPrice = (currency: string, minPrice: number, maxPrice?: numbe
 //   getLocale()
 //     .substring(0, 2)
 //     .toUpperCase();
+
+// export const formatAsMoney = (amount = 0, currency = "USD", locale = "en-US") =>
+//   new Intl.NumberFormat(locale, {
+//     style: "currency",
+//     currency,
+//   }).format(amount);
+
+export const parseEditorJSData = (jsonStringData?: string): DataProp | null => {
+  if (!jsonStringData) {
+    return null;
+  }
+  let data;
+  try {
+    data = JSON.parse(jsonStringData);
+  } catch (e) {
+    return null;
+  }
+
+  if (!data.blocks?.length) {
+    // No data to render
+    return null;
+  }
+
+  // Path for compatibility with data from older version od EditorJS
+  if (!data.time) {
+    data.time = Date.now().toString();
+  }
+  if (!data.version) {
+    data.version = "2.22.2";
+  }
+
+  return data;
+};
 
 export const getProductName = (product) => product?.translation?.name || product?.name;
 export const getProductDescriptionJson = (product) => product?.translation?.descriptionJson || product?.descriptionJson;

@@ -6,11 +6,7 @@ import { useTranslation } from "react-i18next";
 import Products from "@/components/Products";
 // import config from "@/config";
 
-interface Params {
-  lang: string;
-}
-
-const SearchPage: React.FC<PageProps<Params>> = ({ params: { lang } }) => {
+const SearchPage: React.FC<PageProps> = () => {
   const { t } = useTranslation();
   const {
     current: { searchParams },
@@ -25,7 +21,7 @@ const SearchPage: React.FC<PageProps<Params>> = ({ params: { lang } }) => {
 
   return (
     <div className="pt-6 pb-12">
-      <Head title={t("search.title")} meta={[{ name: "description", content: t("search.meta") }]} />
+      <Head title={t("search.title") as string} meta={[{ name: "description", content: t("search.meta") as string }]} />
       <Row justify="center">
         <Col span={22}>
           <Typography.Title id="page-heading" className="text-center" level={1}>
@@ -36,7 +32,7 @@ const SearchPage: React.FC<PageProps<Params>> = ({ params: { lang } }) => {
               <i>"{query}"</i>
             </Typography.Title>
           )}
-          <Products showCategoryFilter showCollectionFilter view="list" listName="Search Results" lang={lang} />
+          <Products showCategoryFilter showCollectionFilter view="list" listName="Search Results" />
         </Col>
       </Row>
     </div>

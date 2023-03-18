@@ -9,7 +9,7 @@ import _ from "lodash";
 import ProductListItem from "./ProductListItem";
 import { getAttributeName, getAttributeValueName, getCategoryName, getCollectionName } from "@/utils/utils";
 import { useTranslation } from "react-i18next";
-import { navigate, useLocation, useQuery, useSSQ } from "rakkasjs";
+import { navigate, useLocation, usePageContext, useSSQ } from "rakkasjs";
 import qs from "query-string";
 import { GraphQLClient } from "graphql-request";
 import config from "@/config";
@@ -21,7 +21,6 @@ interface Props {
   categoryID?: string;
   collectionID?: string;
   view?: "grid" | "list";
-  lang: string;
   listName: string;
 }
 
@@ -40,10 +39,10 @@ const Products: React.FC<Props> = ({
   showCollectionFilter,
   categoryID,
   collectionID,
-  lang,
   view = "grid",
   listName,
 }) => {
+  const { lang } = usePageContext();
   const { t } = useTranslation();
   const sortMap: { [key: string]: any } = {
     RELEVANCE: {

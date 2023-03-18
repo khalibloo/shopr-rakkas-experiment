@@ -1,17 +1,17 @@
 import { Col, Row, Typography } from "antd";
 import RichTextContent from "@/components/RichTextContent";
 import { formatTitle } from "@/utils/utils";
-import { Head, PageProps, useSSQ } from "rakkasjs";
+import { Head, PageProps, usePageContext, useSSQ } from "rakkasjs";
 import { GraphQLClient } from "graphql-request";
 import { getSdk } from "@adapters/saleor/generated/graphql";
 import config from "@/config";
 
 interface Params {
   slug: string;
-  lang: string;
 }
 
-const PageDetailPage: React.FC<PageProps<Params>> = ({ params: { slug, lang } }) => {
+const PageDetailPage: React.FC<PageProps<Params>> = ({ params: { slug } }) => {
+  const { lang } = usePageContext();
   const { data } = useSSQ(async (ctx) => {
     const client = new GraphQLClient(config.apiEndpoint, { fetch: ctx.fetch });
     const sdk = getSdk(client);
@@ -29,7 +29,7 @@ const PageDetailPage: React.FC<PageProps<Params>> = ({ params: { slug, lang } })
           <Typography.Title id="page-heading" className="text-center" level={1}>
             {data?.page?.title}
           </Typography.Title>
-          <RichTextContent contentJson={data?.page?.contentJson} />
+          <RichTextContent contentJson={data.page!.content} />
         </Col>
       </Row>
     </div>

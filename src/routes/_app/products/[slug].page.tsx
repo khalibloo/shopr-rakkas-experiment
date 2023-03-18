@@ -1,6 +1,14 @@
-import React, { useState, createRef, useEffect, useRef } from "react";
-import { Typography, Row, Col, Button, Select, List, Affix, Card, Skeleton, Carousel, notification } from "antd";
+import React, { useState, useEffect, useRef } from "react";
+import { Typography, Row, Col, Button, Select, List, Affix, Card, Carousel, notification } from "antd";
+import { Head, PageProps, usePageContext, useSSQ } from "rakkasjs";
+import type { ListGridType } from "antd/lib/list";
+import type { CarouselRef } from "antd/es/carousel";
+import { useResponsive, useSize } from "ahooks";
+import { last } from "lodash";
+import { useTranslation } from "react-i18next";
+import { GraphQLClient } from "graphql-request";
 import clsx from "clsx";
+
 import RichTextContent from "@/components/RichTextContent";
 import AspectRatio from "@/components/AspectRatio";
 import {
@@ -13,16 +21,10 @@ import {
   getScreenSize,
 } from "@/utils/utils";
 import ProductCard from "@/components/ProductCard";
-import { ListGridType } from "antd/lib/list";
-import { useResponsive, useSize } from "ahooks";
 import { DownOutlined, UpOutlined } from "@ant-design/icons";
-import _ from "lodash";
 import NumberInput from "@/components/NumberInput";
 import config from "@/config";
-import { Head, PageProps, useSSQ } from "rakkasjs";
-import { useTranslation } from "react-i18next";
 import { getSdk } from "@adapters/saleor/generated/graphql";
-import { GraphQLClient } from "graphql-request";
 
 interface AttrValue {
   id: string;
@@ -45,16 +47,17 @@ interface VariantAttr {
 }
 
 interface Params {
-  lang: string;
   product: string;
 }
 
-const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, product: productSlug } }) => {
-  const carouselRef = useRef<typeof Carousel>();
+const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { product: productSlug } }) => {
+  const { lang } = usePageContext();
   const { t } = useTranslation();
   const dispatch = (x) => x;
 
-  const { data } = useSSQ(async (ctx) => {
+  const {
+    data: { product },
+  } = useSSQ(async (ctx) => {
     const client = new GraphQLClient(config.apiEndpoint, { fetch: ctx.fetch });
     const sdk = getSdk(client);
     const res = await sdk.productDetailQuery({ productSlug, lang: lang.toUpperCase() as any });
@@ -62,16 +65,16 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
   });
   const [selectedImg, setSelectedImg] = useState(0);
   const [variantAttrs, setVariantAttrs] = useState<VariantAttr[]>([]);
-  const [selectedVariant, setSelectedVariant] = useState<productDetailQuery_product_variants | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [qty, setQty] = useState(1);
   const responsive: any = useResponsive();
   const screenSize = getScreenSize(responsive);
-  const imgRef = useRef();
+  const carouselRef = useRef<CarouselRef>(null);
+  const imgRef = useRef<HTMLDivElement>(null);
   const imgSize = useSize(imgRef);
-  const thumbsColRef = useRef();
+  const thumbsContainer = useRef<HTMLDivElement>(null);
+  const thumbsColRef = useRef<HTMLDivElement>(null);
   const thumbsColSize = useSize(thumbsColRef);
-
-  const product = data?.product;
 
   useEffect(() => {
     // gather variant attributes
@@ -107,7 +110,7 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
       selection: vAttr.values.length === 1 ? vAttr.values[0].id : undefined,
     }));
     setVariantAttrs(vAttrs);
-  }, [data]);
+  }, [product]);
 
   // update selected variant when attribute selection changes
   useEffect(() => {
@@ -122,15 +125,15 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
       variantAttrs.forEach((vAttr) => {
         if (vAttr.selection) {
           const matchingVariants =
-            _.last(selectionLevels)?.filter(
+            last(selectionLevels)?.filter(
               (variant) =>
                 variant?.attributes.find((a) => a.attribute.id === vAttr.id)?.values?.[0]?.id === vAttr.selection
             ) || [];
           selectionLevels.push(matchingVariants);
         }
       });
-      if (selectionLevels && _.last(selectionLevels)?.length === 1) {
-        setSelectedVariant(_.last(selectionLevels)?.[0] || null);
+      if (selectionLevels && last(selectionLevels)?.length === 1) {
+        setSelectedVariant(last(selectionLevels)?.[0] || null);
       }
     }
   }, [variantAttrs]);
@@ -206,8 +209,7 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
   //   });
   // }, [suggestions]);
 
-  const images =
-    selectedVariant && (selectedVariant.images?.length || 0) > 0 ? selectedVariant.images : product?.images;
+  const images = selectedVariant?.media?.length ? selectedVariant.media : product?.media;
   const currency = product?.pricing?.priceRange?.start?.gross.currency as string;
   const minPrice = selectedVariant
     ? (selectedVariant.pricing?.price?.gross.amount as number)
@@ -230,13 +232,17 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
       <Col xs={16} sm={10} md={12} lg={14} xl={12} xxl={10}>
         <NumberInput
           id="qty-fld"
-          value={qty}
+          defaultValue={1}
           disabled={!selectedVariant}
           min={1}
           max={selectedVariant?.quantityAvailable}
           maxLength={2}
           size="large"
-          onChange={setQty}
+          onChange={(value) => {
+            if (typeof value === "number") {
+              setQty(value);
+            }
+          }}
           decrementBtnProps={{ id: "qty-dec" }}
           incrementBtnProps={{ id: "qty-inc" }}
         />
@@ -272,27 +278,27 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
       {t("products.detail.addToCart")}
     </Button>
   );
+
   return (
-    <div className="flex flex-col flex-grow">
+    <div className="flex flex-col flex-grow mb-12">
       <Head>
         <title>{formatTitle(getProductName(product))}</title>
         <meta name="description" content={getProductName(product)} />
       </Head>
-      <VSpacing height={!responsive.lg ? 8 : 48} />
-      <Row justify="center">
+      <Row className={clsx({ "mt-2": !responsive.lg, "mt-12": responsive.lg })} justify="center">
         <Col span={22}>
           <Row justify="center" gutter={24}>
             <Col xs={24} lg={12}>
               <Row gutter={[8, 8]}>
                 <Col span={4}>
                   {thumbsColSize?.height && imgSize?.height && thumbsColSize.height > imgSize.height && (
-                    <>
+                    <div className="mb-2">
                       <Button
                         block
                         id="thumbs-scroll-up-btn"
                         className="icon-btn"
                         onClick={() =>
-                          document.getElementById("thumbs-container")?.scrollBy({
+                          thumbsContainer.current?.scrollBy({
                             top: -100,
                             behavior: "smooth",
                           })
@@ -300,8 +306,7 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
                       >
                         <UpOutlined />
                       </Button>
-                      <VSpacing height={8} />
-                    </>
+                    </div>
                   )}
                   <div
                     id="thumbs-container"
@@ -309,10 +314,11 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
                     style={{
                       height: imgSize?.height ? imgSize.height - 80 : undefined,
                     }}
+                    ref={thumbsContainer}
                   >
                     <div ref={thumbsColRef}>
                       {images?.map((image, i) => (
-                        <div key={image?.id || i}>
+                        <div key={image?.id || i} className="mb-2">
                           <AspectRatio width={1} height={1} noMask>
                             <Button
                               id={`thumb-btn-${i}`}
@@ -329,14 +335,12 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
                               <img className="w-full" alt={image?.alt || ""} src={image?.url} loading="lazy" />
                             </Button>
                           </AspectRatio>
-                          <VSpacing height={8} />
                         </div>
                       ))}
                     </div>
                   </div>
                   {thumbsColSize?.height && imgSize?.height && thumbsColSize.height > imgSize.height && (
-                    <>
-                      <VSpacing height={8} />
+                    <div className="mt-2">
                       <Button
                         block
                         id="thumbs-scroll-down-btn"
@@ -350,7 +354,7 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
                       >
                         <DownOutlined />
                       </Button>
-                    </>
+                    </div>
                   )}
                 </Col>
                 <Col span={20}>
@@ -373,15 +377,21 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
               </Row>
             </Col>
             <Col span={12} xs={24} sm={24} md={24} lg={12} xl={12} xxl={12}>
-              {!responsive.lg && <VSpacing height={24} />}
-              <Typography.Title id="product-name" className={clsx({ ["text-center"]: !responsive.lg })} level={1}>
+              <Typography.Title
+                id="product-name"
+                className={clsx({ "text-center": !responsive.lg, "mt-6": !responsive.lg })}
+                level={1}
+              >
                 {getProductName(product)}
               </Typography.Title>
               <div id="product-desc">
                 <RichTextContent contentJson={getProductDescriptionJson(product)} lines={10} />
               </div>
-              <VSpacing height={!responsive.lg ? 8 : 36} />
-              <Row id="var-select-row" justify="center">
+              <Row
+                id="var-select-row"
+                className={clsx({ "mt-2": !responsive.lg, "mt-9": responsive.lg })}
+                justify="center"
+              >
                 <Col span={14} xs={18} sm={16} md={14} lg={14} xl={12} xxl={10}>
                   {variantAttrs.map((vAttr, i) => {
                     return (
@@ -410,23 +420,18 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
               </Row>
               {responsive.lg && (
                 <>
-                  <VSpacing height={48} />
-                  {priceLabel}
-                  <VSpacing height={24} />
-
-                  <Row justify="center">
+                  <div className="mt-12">{priceLabel}</div>
+                  <Row className="mt-6" justify="center">
                     <Col span={14} md={22} lg={14} xl={12} xxl={10}>
                       {qtySelector}
                     </Col>
                   </Row>
-                  <VSpacing height={24} />
 
-                  <Row justify="center">
+                  <Row className="my-6" justify="center">
                     <Col span={14} md={22} lg={14} xl={12} xxl={10}>
                       {addToCartBtn}
                     </Col>
                   </Row>
-                  <VSpacing height={24} />
                 </>
               )}
             </Col>
@@ -434,9 +439,7 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
         </Col>
       </Row>
 
-      <VSpacing height={48} />
-
-      <Row justify="center">
+      <Row className="mt-12" justify="center">
         <Col span={22}>
           <Row justify="center">
             <Typography.Title level={1} id="product-suggestions-title">
@@ -444,7 +447,7 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
             </Typography.Title>
           </Row>
           <List
-            dataSource={fetching ? (_.range(4) as any[]) : suggestions}
+            dataSource={suggestions}
             grid={productGrid}
             renderItem={(edge, i) => {
               const productItem = edge.node;
@@ -453,12 +456,7 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
                   <div className="w-full">
                     <Row justify="center">
                       <Col span={24} style={{ maxWidth: 240 }}>
-                        <ProductCard
-                          loading={fetching}
-                          product={productItem}
-                          listName="Product Suggestions"
-                          listIndex={i}
-                        />
+                        <ProductCard product={productItem} listName="Product Suggestions" listIndex={i} />
                       </Col>
                     </Row>
                   </div>
@@ -468,7 +466,6 @@ const ProductDetailPage: React.FC<PageProps<Params>> = ({ params: { lang, produc
           />
         </Col>
       </Row>
-      <VSpacing height={48} />
       {!responsive.lg && (
         <Affix offsetBottom={0}>
           <Card className="shadow-md" bodyStyle={{ padding: 0 }} bordered={false}>

@@ -1,44 +1,41 @@
 import React, { useEffect } from "react";
-import { Button, message, notification, Result } from "antd";
-import { useTranslation } from "react-i18next";
-import { Head, Link, navigate, useLocation } from "rakkasjs";
 import Loader from "@/components/Loader";
+import { Button, notification, Result } from "antd";
+import { FrownOutlined } from "@ant-design/icons";
+import { Head, Link, navigate, useLocation } from "rakkasjs";
+import { useTranslation } from "react-i18next";
 
-const EmailVerifyPage: React.FC = () => {
+const AccountDeactivatePage: React.FC = () => {
   const { t } = useTranslation();
   const {
     current: { searchParams },
   } = useLocation();
-  const email = searchParams.get("email");
   const token = searchParams.get("token");
+
   const dispatch = (x) => x;
   useEffect(() => {
-    if (email && token) {
+    if (token) {
       dispatch?.({
-        type: "auth/verifyEmail",
+        type: "auth/confirmAccountDeactivation",
         payload: {
-          email,
           token,
           onCompleted: () => {
-            notification.success({
-              message: t("who.emailVerify.success"),
-              description: t("who.emailVerify.success.desc"),
+            notification.error({
+              message: t("account.deactivate.success"),
+              description: t("account.deactivate.success.desc"),
+              icon: <FrownOutlined />,
             });
             navigate("/");
-          },
-          onError: (err) => {
-            // check if token expired or is invalid
-            message.error(t("misc.error.generic"));
           },
         },
       });
     }
   }, []);
 
-  if (!token || !email) {
+  if (!token) {
     return (
       <div className="pt-6 pb-12">
-        <Head title={t("account.emailverify.title")} />
+        <Head title={t("account.deactivate.title") as string} />
         <Result
           status="error"
           extra={[
@@ -56,4 +53,4 @@ const EmailVerifyPage: React.FC = () => {
   return <Loader />;
 };
 
-export default EmailVerifyPage;
+export default AccountDeactivatePage;

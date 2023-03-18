@@ -6,6 +6,7 @@ import { getScreenSize } from "@/utils/utils";
 import { HomeCatalogListConfig } from ".altrc";
 import config from "@/config";
 import { getSdk } from "@adapters/saleor/generated/graphql";
+import { GraphQLClient } from "graphql-request";
 
 const HomeCatalogListSection: React.FC<HomeCatalogListConfig> = ({
   menuName,
@@ -15,7 +16,7 @@ const HomeCatalogListSection: React.FC<HomeCatalogListConfig> = ({
   showNames,
   title,
   useMenuNameAsTitle,
-  googleAnalyticsPromoData,
+  // googleAnalyticsPromoData,
 }) => {
   const { data } = useSSQ(async (ctx) => {
     if (menuName) {
@@ -62,7 +63,7 @@ const HomeCatalogListSection: React.FC<HomeCatalogListConfig> = ({
   if (!title && useMenuNameAsTitle) {
     titleText = data?.menu?.name;
   }
-  let items = data?.menu?.items?.filter((item) => item?.category || item?.collection);
+  const items = data?.menu?.items?.filter((item) => item?.category || item?.collection);
   const rowSizes = {
     xs: 1,
     sm: 2,

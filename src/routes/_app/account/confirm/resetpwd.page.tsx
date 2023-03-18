@@ -13,7 +13,7 @@ const PasswordResetPage: React.FC = () => {
 
   return (
     <div className="pt-6 pb-12">
-      <Head title={t("account.resetpwd.title")} />
+      <Head title={t("account.resetpwd.title") as string} />
       {!token || !email ? (
         <Result
           status="error"

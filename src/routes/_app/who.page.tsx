@@ -21,7 +21,7 @@ const WhoPage = () => {
 
   return (
     <div className="pt-6 pb-12">
-      <Head title={t("who.title")} meta={[{ name: "description", content: t("who.meta") }]} />
+      <Head title={t("who.title") as string} meta={[{ name: "description", content: t("who.meta") as string }]} />
       <Row justify="center">
         <Col span={22}>
           <Typography.Title id="page-heading" className="text-center" level={1}>
